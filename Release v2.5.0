@@ -1,1 +1,43 @@
 
+# Win11-Golden-Image-Builder v2.5.0
+
+## Highlights
+
+This release introduces a complete Windows 11 image engineering framework focused on offline servicing, security hardening, OEM customization, and deployment-ready ISO creation.
+
+### Features
+
+* Offline AppX removal
+* Offline capability removal
+* Offline OneDrive removal
+* .NET Framework 3.5 enablement
+* Default application associations
+* OEM customization layer
+* Security baseline integration
+* LGPO deployment
+* AuditMode automation
+* ISO creation workflow
+* SHA256 validation support
+
+### Security
+
+* Microsoft Security Baseline integration
+* CIS-aligned hardening controls
+* Credential Guard support
+* Hypervisor-Protected Code Integrity support
+* Virtualization-Based Security support
+
+### Deployment
+
+Generated images are suitable for:
+
+* Microsoft Intune
+* Windows Autopilot
+* MECM / SCCM
+* MDT
+* Hyper-V
+* VMware
+
+### Notes
+
+Review all unattend files, certificates, VPN profiles, branding assets, and organizational customizations before distribution outside your environment.
