@@ -1,15 +1,28 @@
-# Windows 11 Golden Image Builder
-![PowerShell](https://img.shields.io/badge/PowerShell-5.1+-blue)
-![Windows 11](https://img.shields.io/badge/Windows-11-0078D4)
-![License](https://img.shields.io/badge/License-Apache%202.0-green)
-![Status](https://img.shields.io/badge/Status-Active-success)
-![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey)
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./assets/logo-horizontal-dark.svg">
+    <img src="./assets/logo-horizontal-light.svg" alt="Modern Windows Image Factory" width="480">
+  </picture>
+</p>
 
-Modern-Windows-Image-Factory is an enterprise-grade Windows image engineering framework that treats operating system deployment as code.
+<p align="center">
+  <img alt="PowerShell" src="https://img.shields.io/badge/PowerShell-5.1+-blue">
+  <img alt="Windows 11" src="https://img.shields.io/badge/Windows-11-0078D4">
+  <img alt="License" src="https://img.shields.io/badge/License-MIT-green">
+  <img alt="Status" src="https://img.shields.io/badge/Status-Active-success">
+  <img alt="Platform" src="https://img.shields.io/badge/Platform-Windows-lightgrey">
+</p>
 
-The project enables organizations to build repeatable, secure, and deployment-ready Windows 11 images through automated offline servicing, security hardening, OEM customization, and image lifecycle management.
+Modern Windows Image Factory is an enterprise-grade Windows image engineering framework that
+treats operating system deployment as code.
 
-Its goal is to bring Platform Engineering principles to Windows endpoint management by transforming traditional image creation into a predictable, auditable, and version-controlled process.
+The project enables organizations to build repeatable, secure, and deployment-ready Windows 11
+images through automated offline servicing, security hardening, OEM customization, and image
+lifecycle management.
+
+Its goal is to bring Platform Engineering principles to Windows endpoint management by
+transforming traditional image creation into a predictable, auditable, and version-controlled
+process.
 
 A self-contained PowerShell pipeline that produces a hardened, debloated Windows 11 Enterprise
 ISO, ready for deployment via MDT/SCCM/Autopilot or straight USB install. Originally built for a
@@ -18,12 +31,12 @@ real enterprise fleet rollout, genericized here so anyone can adapt it to their 
 ## This is offline image servicing, not a post-install debloat script
 
 Most "debloat Windows" tools (Sophia Script, ChrisTitusTech's WinUtil, O&O ShutUp10, the various
-`ThisWillMakeYourWindowsSuck`-style repos) run **after** Windows is already installed and booted —
+`ThisWillMakeYourWindowsSuck`-style repos) run **after** Windows is already installed and booted -
 they uninstall apps, flip registry keys, and disable services on a live, running OS.
 
 This pipeline works **before** Windows ever boots. It mounts the install `.wim` offline with DISM,
 strips provisioned AppX packages and SystemApps out of the image itself, then repackages a new
-ISO. The machine's first boot is already the end state — nothing to run, nothing to wait for,
+ISO. The machine's first boot is already the end state - nothing to run, nothing to wait for,
 nothing for a user to interrupt.
 
 | | Offline servicing (this repo) | Post-install debloat script |
@@ -128,6 +141,10 @@ Every folder has its own `README.md` explaining what goes there and why.
   phases the first several times you run this.
 - Doesn't manage driver packs - `10-Build-OemLayer.ps1` stages whatever's in your `Drivers\`
   folder, sourcing/organizing those per hardware model is on you.
+- Doesn't yet ship `Apply-SecurityBaseline.ps1` - referenced throughout `AuditMode/README.md` and
+  the v2.5.0 release notes, but not present in this repo. Tracked as a real gap, not a
+  documentation typo. Treat every hardening claim in the release notes as roadmap until this
+  script lands - see `ROADMAP.md` (Security section, v2.6).
 
 ## Background / worked example
 
@@ -143,6 +160,4 @@ touches DISM/WIM servicing and Sysprep, test on a VM before you point it at real
 
 ## Contributing
 
-PRs welcome, especially: additional driver-injection patterns, a real orchestrator script for
-v3.0 (deferred in the original build - see `CHANGELOG.md` section 6), and Autopilot/Intune
-handoff documentation.
+See `CONTRIBUTING.md`. Roadmap and version targets: `ROADMAP.md`.
