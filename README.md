@@ -5,6 +5,12 @@
 ![Status](https://img.shields.io/badge/Status-Active-success)
 ![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey)
 
+Modern-Windows-Image-Factory is an enterprise-grade Windows image engineering framework that treats operating system deployment as code.
+
+The project enables organizations to build repeatable, secure, and deployment-ready Windows 11 images through automated offline servicing, security hardening, OEM customization, and image lifecycle management.
+
+Its goal is to bring Platform Engineering principles to Windows endpoint management by transforming traditional image creation into a predictable, auditable, and version-controlled process.
+
 A self-contained PowerShell pipeline that produces a hardened, debloated Windows 11 Enterprise
 ISO, ready for deployment via MDT/SCCM/Autopilot or straight USB install. Originally built for a
 real enterprise fleet rollout, genericized here so anyone can adapt it to their own environment.
