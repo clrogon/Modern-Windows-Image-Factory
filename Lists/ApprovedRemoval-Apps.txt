@@ -1,0 +1,79 @@
+# =============================================================================
+# ORG Approved Removal List - Provisioned AppX packages
+# -----------------------------------------------------------------------------
+# Lines starting with # and blank lines are ignored.
+# Entries match via wildcard *ENTRY* against DisplayName.
+#
+# This list controls what 04-Remove-ProvisionedApps.ps1 removes from the offline
+# install.wim. Changes require IT Architecture approval (RFC).
+# =============================================================================
+
+# --- Bing-branded apps (Start Menu / Search clutter) ---
+Microsoft.BingNews
+Microsoft.BingWeather
+Microsoft.BingSearch
+# NOTE: BingSearch in 25H2 ALSO ships as a SystemApp (folder under SystemApps).
+# 05-Remove-SystemApps.ps1 handles that separately.
+
+# --- Xbox / Gaming ---
+Microsoft.GamingApp
+Microsoft.Xbox.TCUI
+Microsoft.XboxGameOverlay
+Microsoft.XboxGamingOverlay
+Microsoft.XboxIdentityProvider
+Microsoft.XboxSpeechToTextOverlay
+
+# --- Casual games and entertainment ---
+Microsoft.MicrosoftSolitaireCollection
+Microsoft.ZuneMusic
+Microsoft.ZuneVideo
+
+# --- Help / Tips / Feedback (post-deployment noise) ---
+Microsoft.GetHelp
+Microsoft.Getstarted
+Microsoft.WindowsFeedbackHub
+
+# --- Office stub apps (real Office deployed separately via M365 Apps) ---
+Microsoft.MicrosoftOfficeHub
+Microsoft.OutlookForWindows
+
+# --- Mixed reality and other unused ---
+Microsoft.MixedReality.Portal
+Microsoft.People
+
+# --- Power Platform consumer ---
+Microsoft.PowerAutomateDesktop
+
+# --- Todo, Alarms, Maps - not used in ORG corporate context ---
+Microsoft.Todos
+Microsoft.WindowsAlarms
+Microsoft.WindowsMaps
+
+# --- Mail/People/Calendar consumer client (corporate uses Outlook desktop) ---
+Microsoft.WindowsCommunicationsApps
+
+# --- Phone Link (cross-device consumer feature) ---
+Microsoft.YourPhone
+
+# --- Teams (both consumer and new MSTeams) ---
+# Corporate Teams is deployed via M365 Apps ODT/Click-to-Run (same MSTeams AppX
+# but signed-in to ORG tenant). Removing built-in versions prevents
+# personal-account prompts and stale tenant cache.
+MicrosoftTeams
+MSTeams
+
+# --- Clipchamp (consumer video editor) ---
+Clipchamp.Clipchamp
+
+# --- Quick Assist ---
+# 25H2: Quick Assist is BOTH a provisioned AppX (this list) AND a SystemApp
+# (handled by 05-Remove-SystemApps.ps1). Both entries needed.
+MicrosoftCorporationII.QuickAssist
+
+# --- Dev Home (developer onboarding hub - not used in fleet) ---
+Microsoft.Windows.DevHome
+
+# --- 25H2 newcomers ---
+MicrosoftCorporationII.MicrosoftFamily
+MicrosoftWindows.CrossDevice
+Microsoft.Copilot

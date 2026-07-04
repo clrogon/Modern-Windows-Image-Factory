@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration ID="ORG-M365-SemiAnnual">
+
+  <!--
+    Your Organization - M365 Apps for Enterprise
+    Channel : Semi-Annual Enterprise Channel
+    Products: O365ProPlusRetail
+    Author  : Your Name - IT Solutions Architecture
+    Version : 1.0 | 2026-06-02
+  -->
+
+  <!--
+    No SourcePath set: setup.exe resolves Office\Data relative to its working
+    directory. This makes the config portable across the build server (E:\Build\...)
+    and the reference VM (C:\AuditMode\...) without path conflicts. Both the
+    download helper and the installer set -WorkingDirectory to the ODT folder.
+    With AllowCdnFallback=FALSE the source MUST be present locally. Pre-download
+    once with
+    Download-OfficeSource.ps1 on the build server, then rebuild the ISO (06 + 07) -
+    install in audit mode. See STAGED-OFFICE-VERSION.txt for the staged build.
+    REVIEW: refresh the source roughly every 6 months (SAEC feature updates land
+    ~January and ~July) and re-verify the Acrobat build at the same time.
+  -->
+  <Add OfficeClientEdition="64"
+       Channel="SemiAnnual"
+       AllowCdnFallback="FALSE"
+       ForceUpgrade="TRUE">
+
+    <!--
+      OneDrive and Teams are EXCLUDED here on purpose. If left in, M365 Apps
+      installs the per-USER OneDrive/Teams clients (into each profile's AppData)
+      - the same clients removed in the offline build (script 04/G5).
+      ORG decision (real-world): these bundled clients caused repeated
+      deployment failures requiring manual uninstall/reinstall by the support
+      team. They are therefore NOT baked into the image (thin or thick). The
+      deployment team installs and manages OneDrive/Teams post-image
+      (Intune/GPO/managed install). These exclusions guarantee the M365 install
+      cannot silently re-add the per-user clients.
+    -->
+    <Product ID="O365ProPlusRetail">
+      <Language ID="en-us" />
+      <ExcludeApp ID="Access" />
+      <ExcludeApp ID="Groove" />
+      <ExcludeApp ID="Lync" />
+      <ExcludeApp ID="OneDrive" />
+      <ExcludeApp ID="Publisher" />
+      <ExcludeApp ID="Teams" />
+    </Product>
+
+  </Add>
+
+  <!-- Block Office from auto-updating during image build / audit mode -->
+  <Updates Enabled="FALSE"
+           Channel="SemiAnnual" />
+
+  <Display Level="None" AcceptEULA="TRUE" />
+
+  <Logging Level="Standard" Path="C:\Windows\Temp\ODT_Install.log" />
+
+  <Property Name="AUTOACTIVATE" Value="0" />
+  <Property Name="FORCEAPPSHUTDOWN" Value="TRUE" />
+  <Property Name="SharedComputerLicensing" Value="0" />
+  <Property Name="PinIconsToTaskbar" Value="FALSE" />
+
+  <RemoveMSI />
+
+  <AppSettings>
+    <User Key="software\microsoft\office\16.0\common\general"
+          Name="shownfirstrunoptin"
+          Value="1"
+          Type="REG_DWORD"
+          App="office16"
+          Id="L_DisableOptinWizard" />
+    <User Key="software\microsoft\office\16.0\firstrun"
+          Name="disablemovie"
+          Value="1"
+          Type="REG_DWORD"
+          App="office16"
+          Id="L_DisableMovie" />
+  </AppSettings>
+
+</Configuration>

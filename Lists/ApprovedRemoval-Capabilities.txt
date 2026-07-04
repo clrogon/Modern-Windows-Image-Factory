@@ -1,0 +1,30 @@
+# ORG IT Architecture — Approved Windows Capabilities Removal List
+# Document Reference: WIN11-GOLDIMG-001 v2.1, Phase 3.1.1
+# Owner: IT Solutions Architecture
+# Format: One Capability Name (with version tail) per line
+# Lines starting with # are comments and ignored by the build script
+# Last reviewed: <YYYY-MM-DD>
+#
+# CHANGE CONTROL: Modification of this list requires RFC and IT Architecture approval.
+#
+# DO NOT remove:
+#   - OpenSSH.Client          (admin scripting dependency)
+#   - NetFx3 / NetFx4*        (enterprise app dependency)
+#   - WMIC?                   (legacy; verify usage before any removal)
+#   - Hello.Face.*            (Windows Hello for Business face recognition)
+#   - DirectX / Print / Mail capabilities used by enterprise apps
+#
+# --- Quick Assist (matches AppX removal above) ---
+App.Support.QuickAssist~~~~0.0.1.0
+#
+# --- Legacy Internet Explorer (Edge replaces; IE mode does NOT require this capability) ---
+Browser.InternetExplorer~~~~0.0.11.0
+#
+# --- Windows Media Player legacy (Win11 ships Media Player as separate AppX) ---
+Media.WindowsMediaPlayer~~~~0.0.12.0
+#
+# --- Math input panel (rarely used; remove unless specific user need identified) ---
+MathRecognizer~~~~0.0.1.0
+#
+# --- Steps Recorder (deprecated by Microsoft; replaced by Snipping Tool record) ---
+App.StepsRecorder~~~~0.0.1.0

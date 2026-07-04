@@ -1,212 +1,63 @@
-# Modern-Windows-Image-Factory
-Enterprise-grade Windows 11 Golden Image Builder for offline servicing, security hardening, OEM customization, and deployment-ready ISO creation.
 # Windows 11 Golden Image Builder
 
-Enterprise-grade Windows 11 image engineering framework for creating hardened, debloated, and deployment-ready Windows 11 Enterprise images through offline servicing.
+A self-contained PowerShell pipeline that produces a hardened, debloated Windows 11 Enterprise
+ISO, ready for deployment via MDT/SCCM/Autopilot or straight USB install. Originally built for a
+real enterprise fleet rollout, genericized here so anyone can adapt it to their own environment.
 
-This project automates the creation of standardized Windows 11 images using PowerShell, DISM, Windows ADK, Security Compliance Toolkit (SCT), LGPO, and Sysprep-based reference image workflows.
+## This is offline image servicing, not a post-install debloat script
 
----
+Most "debloat Windows" tools (Sophia Script, ChrisTitusTech's WinUtil, O&O ShutUp10, the various
+`ThisWillMakeYourWindowsSuck`-style repos) run **after** Windows is already installed and booted —
+they uninstall apps, flip registry keys, and disable services on a live, running OS.
 
-## Overview
+This pipeline works **before** Windows ever boots. It mounts the install `.wim` offline with DISM,
+strips provisioned AppX packages and SystemApps out of the image itself, then repackages a new
+ISO. The machine's first boot is already the end state — nothing to run, nothing to wait for,
+nothing for a user to interrupt.
 
-Unlike traditional post-install debloating solutions, this project performs image customization before Windows is deployed.
+| | Offline servicing (this repo) | Post-install debloat script |
+|---|---|---|
+| **When it runs** | Once, on the build server, before any machine exists | On every machine, after every install |
+| **First-boot experience** | Already clean | Bloated until the script runs |
+| **Scales to N machines** | Same effort for 1 or 10,000 (one image) | Effort scales with fleet size |
+| **Can a user skip/interrupt it** | No - it's baked in | Yes - if it needs a reboot mid-run, network access, or admin consent |
+| **Debugging a bad removal** | Fix the image, rebuild once | Fix the script, hope it's idempotent, re-run on every machine |
+| **Best for** | Fleets deployed via MDT/SCCM/Autopilot from a common image | Individual machines, or environments where you can't control the install media |
+| **Downside** | Higher setup cost (WIM servicing, ADK, a Sysprep reference VM) | Lower setup cost, but recurring runtime cost forever |
 
-The operating system image is serviced offline, allowing unwanted applications, capabilities, and components to be removed directly from the WIM before installation.
+If you manage more than a handful of machines from a common image, doing the removal once at the
+image level is strictly less total work than doing it per-machine forever. If you're debloating
+your own single PC, a post-install script is faster to get running - use `tiny11builder` or
+`nano11` for that instead, they're built for exactly that case.
 
-The resulting ISO provides:
+## How it's structured
 
-* Faster deployment
-* Reduced first-boot configuration
-* Consistent fleet-wide configuration
-* Lower operational overhead
-* Improved security posture
-* Repeatable and auditable image creation
+Two phases, one base image:
 
----
+- **Build server** (`Scripts/01` -> `11`): offline WIM servicing + ISO repackage. No VM needed.
+- **Reference VM** (`AuditMode/`): security baseline + optional software layer + Sysprep + capture.
 
-## Key Features
+Two variants from that one base:
 
-### Offline Image Servicing
+| Variant | Contents |
+|---|---|
+| **THIN** | OS + drivers + branding + hardening. No apps. Apps layered at deployment (Intune/SCCM/etc). |
+| **THICK** | THIN + M365 Apps and Adobe Acrobat baked in, as working examples of the two installer patterns (ODT and silent EXE/MSI). Add whatever else your org needs - see `AuditMode/Software/Install-ImageSoftware.ps1`. |
 
-* Remove Provisioned AppX packages
-* Remove Windows Capabilities
-* Remove SystemApps
-* Remove OneDrive
-* Enable .NET Framework 3.5
-* Configure default file associations
-* Inject OEM customization
+OneDrive and Teams are removed offline and excluded from the Office config on purpose - see
+`AuditMode/Software/ODT/ODT_SemiAnnual.xml` for why. The deployment team owns those two
+post-image via Intune/GPO instead. This decision cost the original team repeated support tickets
+before they made it the default; keeping it as the default here too.
 
-### Security Hardening
-
-* Microsoft Security Compliance Toolkit (SCT)
-* LGPO policy deployment
-* CIS Level 1 alignment
-* Credential Guard
-* Hypervisor-Protected Code Integrity (HVCI)
-* Virtualization-Based Security (VBS)
-
-### Enterprise Deployment Ready
-
-Supports deployment through:
-
-* Microsoft Intune
-* Microsoft Autopilot
-* MDT
-* MECM / SCCM
-* USB installation media
-* Hyper-V templates
-* VMware templates
-
-### Build Safety
-
-Most scripts support:
-
-* Dry-run execution
-* Logging
-* Validation checks
-* Recovery workflows
-
----
-
-## Architecture
-
-```text
-Retail Windows 11 ISO
-          │
-          ▼
-  Offline WIM Servicing
-          │
-          ├── Remove AppX Packages
-          ├── Remove Capabilities
-          ├── Remove System Apps
-          ├── Remove OneDrive
-          ├── Enable .NET 3.5
-          └── Configure Defaults
-          │
-          ▼
-     OEM Layer Build
-          │
-          ▼
-    Custom Enterprise ISO
-          │
-          ▼
-      Reference VM
-          │
-          ├── Security Baseline
-          ├── Branding
-          ├── Application Layer
-          └── Validation
-          │
-          ▼
-      Sysprep Capture
-          │
-          ▼
-     Production Image
-```
-
----
-
-## Repository Structure
-
-```text
-.
-├── AuditMode/
-├── Branding/
-├── Defaults/
-├── GPO-Backup/
-├── LGPO/
-├── Lists/
-├── OEM-Template/
-├── SCT/
-├── Scripts/
-├── unattend/
-├── LICENSE
-└── README.md
-```
-
-### Folder Summary
-
-| Folder       | Purpose                                        |
-| ------------ | ---------------------------------------------- |
-| Scripts      | Offline image servicing pipeline               |
-| AuditMode    | Reference VM hardening and customization       |
-| Branding     | Corporate branding assets                      |
-| Defaults     | Default user profile settings                  |
-| LGPO         | Local Group Policy deployment                  |
-| SCT          | Microsoft Security Compliance Toolkit          |
-| GPO-Backup   | Source policy backups                          |
-| Lists        | Application and capability removal definitions |
-| OEM-Template | SetupComplete and OEM customizations           |
-| unattend     | Unattended installation configuration          |
-
----
-
-## Build Variants
-
-### THIN Image
-
-Contains:
-
-* Windows 11 Enterprise
-* Security Baselines
-* Drivers
-* Branding
-* Core Customizations
-
-Applications are deployed later through Intune, MECM, or other software distribution platforms.
-
-Recommended for modern endpoint management environments.
-
----
-
-### THICK Image
-
-Contains:
-
-* Everything from THIN
-* Microsoft 365 Apps
-* Adobe Acrobat
-* Additional enterprise applications
-
-Applications are embedded into the image during the reference VM stage.
-
-Recommended for disconnected or bandwidth-constrained environments.
-
----
-
-## Prerequisites
-
-### Build Server
-
-Required:
-
-* Windows 11
-* PowerShell 5.1+
-* Windows ADK
-* Windows PE Add-on
-* Windows 11 Enterprise ISO
-* Administrative privileges
-
-### Reference VM
-
-Required:
-
-* Hyper-V, VMware, or VirtualBox
-* Security Compliance Toolkit
-* LGPO.exe
-* Sysprep support
-
----
-
-## Quick Start
+## Quick start
 
 ```powershell
+# On your build server (needs the Win11 Enterprise ISO + Windows ADK installed)
 Set-Location Scripts
-
 .\01-Unblock-Scripts.ps1
 .\03-Initialize-BuildEnvironment.ps1
 
+# Per build - each script dry-runs by default, pass -Apply to actually change anything
 .\02-Extract-Iso.ps1 -Apply
 .\04-Remove-ProvisionedApps.ps1 -Apply
 .\05-Remove-SystemApps.ps1 -Apply
@@ -218,52 +69,69 @@ Set-Location Scripts
 .\11-Build-Iso.ps1 -Apply
 ```
 
----
+Full run order, recovery commands, and why there are three separate offline-removal scripts:
+see `Scripts/README.md`.
 
-## Security Considerations
+## Before you use this for real
 
-Before publishing or sharing generated images:
+This repo ships with obvious placeholders instead of your organization's real values. Nothing
+here will silently apply your identity to someone else's fleet - you have to go fill these in:
 
-* Review all branding assets
-* Review unattend.xml contents
-* Remove internal certificates
-* Remove internal server references
-* Remove organizational secrets
-* Review VPN profiles
-* Validate licensing compliance
+| What | Where | Placeholder |
+|---|---|---|
+| Company name / support desk | `OEM-Template/SetupComplete.cmd` | `ORG`, `<SERVICE_DESK_PHONE>`, `<SERVICE_DESK_HOURS>`, support URL |
+| Wallpaper / lock screen images | `Branding/` | folder is empty - see `Branding/README.md` |
+| Domain / GPO backup source | `GPO-Backup/README.md`, `Defaults/README.md`, `LGPO/README.md` | `corp.contoso.local` |
+| Sysprep answer file admin password | `OEM-Template/Autounattend.xml` | `!ChangeMe2026!` (this is a **plaintext password in an unattend file** - audit-mode reference VM only, never on a domain-joined or internet-facing box) |
+| Locale / timezone defaults | `AuditMode/Apply-PostInstallCustomization.ps1` | `en-US` / `Eastern Standard Time` - these are just examples, set them to your market |
+| M365 config ID / product list | `AuditMode/Software/ODT/ODT_SemiAnnual.xml` | `ORG-M365-SemiAnnual` |
+| THICK software beyond M365/Adobe | `AuditMode/Software/Install-ImageSoftware.ps1` | commented `$AppDefinitions` template entry |
 
-Never commit credentials, tokens, certificates, or production configuration data.
+Grep for `ORG`, `CompanyBrand`, `yourcompany`, and `contoso.local` across the repo if you want to
+find every spot in one pass - those four tokens cover essentially all of it.
 
----
+## Folder structure
 
-## Versioning
-
-This project follows Semantic Versioning principles.
-
-Example:
-
-```text
-v2.5.0
-│ │ └─ Patch
-│ └── Minor
-└──── Major
+```
+.
+├── AuditMode/            # Reference-VM scripts: security baseline, software layer, Sysprep prep
+├── Branding/             # Wallpaper/lock screen assets (empty - bring your own)
+├── Defaults/             # Default app associations / WiFi profile sourced from your domain
+├── GPO-Backup/           # Where you drop `Backup-GPO` output before extracting to LGPO text
+├── LGPO/                 # Local Group Policy text files applied on the reference VM
+├── Lists/                # Approved-removal lists for AppX packages and Windows capabilities
+├── OEM-Template/         # $OEM$ tree: Autounattend.xml, SetupComplete.cmd, OEM info
+├── SCT/                  # Drop the Microsoft Security Compliance Toolkit baseline here
+├── Scripts/              # 01-11 build-server pipeline + Diagnostics/ (see Scripts/README.md)
+└── unattend/             # Sysprep + MDT answer files (build with Windows SIM)
 ```
 
----
+Every folder has its own `README.md` explaining what goes there and why.
+
+## What this doesn't do
+
+- Doesn't touch Autopilot enrollment or Intune policy - this produces the base image, deployment
+  tooling is a separate concern.
+- Doesn't include an orchestrator script that runs 01->11 in one command by design - each phase
+  should be reviewable/interruptible on a build server, and you'll want to inspect logs between
+  phases the first several times you run this.
+- Doesn't manage driver packs - `10-Build-OemLayer.ps1` stages whatever's in your `Drivers\`
+  folder, sourcing/organizing those per hardware model is on you.
+
+## Background / worked example
+
+`CHANGELOG.md` documents a real branding bug this pipeline hit and how it was root-caused (a
+path mismatch between the script that stages branding files and the script that consumes them at
+first boot) - worth reading before you customize `10-Build-OemLayer.ps1` or `SetupComplete.cmd`,
+since it's exactly the class of bug you'll hit if the two ever disagree on a path again.
 
 ## License
 
-See the LICENSE file included in this repository.
+MIT - see `LICENSE`. Use it, fork it, sell services around it, whatever. No warranty; this
+touches DISM/WIM servicing and Sysprep, test on a VM before you point it at real hardware.
 
----
+## Contributing
 
-## Acknowledgements
-
-Built using:
-
-* Microsoft Windows ADK
-* Microsoft DISM
-* Microsoft Security Compliance Toolkit
-* LGPO Utility
-* PowerShell
-* Windows Deployment Technologies
+PRs welcome, especially: additional driver-injection patterns, a real orchestrator script for
+v3.0 (deferred in the original build - see `CHANGELOG.md` section 6), and Autopilot/Intune
+handoff documentation.

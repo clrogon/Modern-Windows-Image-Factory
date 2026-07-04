@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Windows 11 Image Builder - Autounattend.xml
+Reference: WIN11-GOLDIMG-001
+Owner: IT Solutions Architecture
+
+PURPOSE
+Answer Windows Setup prompts during install from the custom ISO so the
+build engineer does not need to interact with OOBE on the reference VM.
+
+WHAT THIS FILE DOES
+* Bypasses Win11 hardware requirements (for VM reference build)
+* Accepts EULA, supplies Enterprise KMS key
+* Wipes disk 0, creates standard UEFI partition layout
+* Installs Windows 11 Enterprise (image index 3)
+* Skips OOBE (machine and user)
+* AutoLogons as Administrator ONCE
+* Enters audit mode automatically for hardening + Sysprep prep
+
+WHAT THIS FILE DOES NOT DO (by design, no duplication of build chain)
+* AppX provisioned package removal       : script 03
+* Windows capability removal             : script 03
+* SystemApp folder removal               : script 03b
+* OneDriveSetup removal                  : script 04
+* Reinstall suppression registry keys    : script 04
+* .NET Framework 3.5 enablement          : script 04b
+* OEMDefaultAssociations import          : script 04c
+* Branding (wallpaper, lockscreen, OEM)  : SetupComplete.cmd
+* DevicePath, pnputil scan               : SetupComplete.cmd
+* Timezone (example default, change to your market) : SetupComplete.cmd Task 6
+* Locale / GeoID         : SetupComplete.cmd Tasks 2 and 7
+* CMTrace registration                   : SetupComplete.cmd Task 5
+* Security baseline (SCT, CIS, VBS)      : Apply-SecurityBaseline.ps1 in audit mode
+
+SECURITY NOTES
+1. AdministratorPassword and AutoLogon password are stored in plain text.
+   Acceptable here because the reference VM is ephemeral: Sysprep resets the
+   local administrator before WIM capture, so the credential does not
+   propagate to production endpoints.
+2. The placeholder !ChangeMe2026! MUST be substituted before
+   building. Reference VM only.
+3. AutoLogon LogonCount is 1. FirstLogonCommands disable it explicitly
+   immediately after first logon.
+4. SmartScreen and Defender are NOT disabled. The original schneegans
+   generator template disabled them; that was rejected because it violates
+   G1 (security baseline compliance before capture).
+
+SOURCE NOTE
+This file is a curated rewrite of an Autounattend.xml originally generated
+by https://schneegans.de/windows/unattend-generator/. The generator output
+duplicated about 60 percent of the offline build chain and introduced
+security regressions. Those were stripped.
+-->
+<unattend xmlns="urn:schemas-microsoft-com:unattend" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State">
+
+  <settings pass="windowsPE">
+
+    <component name="Microsoft-Windows-International-Core-WinPE" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+      <SetupUILanguage>
+        <UILanguage>en-US</UILanguage>
+      </SetupUILanguage>
+      <UILanguage>en-US</UILanguage>
+    </component>
+
+    <component name="Microsoft-Windows-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+
+      <UserData>
+        <AcceptEula>true</AcceptEula>
+        <ProductKey>
+          <!-- Win11 Enterprise generic KMS client setup key (non-N) -->
+          <Key>NPPR9-FWDCX-D2C8J-H872K-2YT43</Key>
+          <WillShowUI>OnError</WillShowUI>
+        </ProductKey>
+      </UserData>
+
+      <RunSynchronous>
+        <!-- Bypass Win11 hardware requirements (acceptable for VM reference build) -->
+        <RunSynchronousCommand wcm:action="add">
+          <Order>1</Order>
+          <Path>reg.exe add "HKLM\SYSTEM\Setup\LabConfig" /v BypassTPMCheck /t REG_DWORD /d 1 /f</Path>
+        </RunSynchronousCommand>
+        <RunSynchronousCommand wcm:action="add">
+          <Order>2</Order>
+          <Path>reg.exe add "HKLM\SYSTEM\Setup\LabConfig" /v BypassSecureBootCheck /t REG_DWORD /d 1 /f</Path>
+        </RunSynchronousCommand>
+        <RunSynchronousCommand wcm:action="add">
+          <Order>3</Order>
+          <Path>reg.exe add "HKLM\SYSTEM\Setup\LabConfig" /v BypassRAMCheck /t REG_DWORD /d 1 /f</Path>
+        </RunSynchronousCommand>
+      </RunSynchronous>
+
+      <!-- Disk partitioning: wipe disk 0, standard UEFI layout -->
+      <DiskConfiguration>
+        <Disk wcm:action="add">
+          <DiskID>0</DiskID>
+          <WillWipeDisk>true</WillWipeDisk>
+          <CreatePartitions>
+            <CreatePartition wcm:action="add">
+              <Order>1</Order>
+              <Type>EFI</Type>
+              <Size>500</Size>
+            </CreatePartition>
+            <CreatePartition wcm:action="add">
+              <Order>2</Order>
+              <Type>MSR</Type>
+              <Size>128</Size>
+            </CreatePartition>
+            <CreatePartition wcm:action="add">
+              <Order>3</Order>
+              <Type>Primary</Type>
+              <Extend>true</Extend>
+            </CreatePartition>
+          </CreatePartitions>
+          <ModifyPartitions>
+            <ModifyPartition wcm:action="add">
+              <Order>1</Order>
+              <PartitionID>1</PartitionID>
+              <Format>FAT32</Format>
+              <Label>System</Label>
+            </ModifyPartition>
+            <ModifyPartition wcm:action="add">
+              <Order>2</Order>
+              <PartitionID>2</PartitionID>
+            </ModifyPartition>
+            <ModifyPartition wcm:action="add">
+              <Order>3</Order>
+              <PartitionID>3</PartitionID>
+              <Format>NTFS</Format>
+              <Label>Windows</Label>
+              <Letter>C</Letter>
+            </ModifyPartition>
+          </ModifyPartitions>
+        </Disk>
+        <WillShowUI>OnError</WillShowUI>
+      </DiskConfiguration>
+
+      <ImageInstall>
+        <OSImage>
+          <InstallFrom>
+            <MetaData wcm:action="add">
+              <!-- Image index 3 = Windows 11 Enterprise -->
+              <Key>/IMAGE/INDEX</Key>
+              <Value>3</Value>
+            </MetaData>
+          </InstallFrom>
+          <InstallTo>
+            <DiskID>0</DiskID>
+            <PartitionID>3</PartitionID>
+          </InstallTo>
+          <WillShowUI>OnError</WillShowUI>
+        </OSImage>
+      </ImageInstall>
+
+    </component>
+  </settings>
+
+  <!-- PASS specialize: minimal, OOBE bypass and execution policy only -->
+  <settings pass="specialize">
+
+    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+      <!-- "*" tells Sysprep to generate a random name. MDT will rename later. -->
+      <ComputerName>*</ComputerName>
+    </component>
+
+    <component name="Microsoft-Windows-Deployment" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+      <RunSynchronous>
+
+        <!-- BypassNRO: skip "you need internet" OOBE screen on offline reference VMs -->
+        <RunSynchronousCommand wcm:action="add">
+          <Order>1</Order>
+          <Path>reg.exe add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\OOBE" /v BypassNRO /t REG_DWORD /d 1 /f</Path>
+        </RunSynchronousCommand>
+
+        <!-- ExecutionPolicy RemoteSigned (needed for audit-mode scripts) -->
+        <RunSynchronousCommand wcm:action="add">
+          <Order>2</Order>
+          <Path>powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Set-ExecutionPolicy -Scope LocalMachine -ExecutionPolicy RemoteSigned -Force"</Path>
+        </RunSynchronousCommand>
+
+        <!-- Fast Startup off (interferes with image deployment and GPO refresh) -->
+        <RunSynchronousCommand wcm:action="add">
+          <Order>3</Order>
+          <Path>reg.exe add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Power" /v HiberbootEnabled /t REG_DWORD /d 0 /f</Path>
+        </RunSynchronousCommand>
+
+        <!-- DisableAutomaticRestartSignOn (CIS best practice) -->
+        <RunSynchronousCommand wcm:action="add">
+          <Order>4</Order>
+          <Path>reg.exe add "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v DisableAutomaticRestartSignOn /t REG_DWORD /d 1 /f</Path>
+        </RunSynchronousCommand>
+
+        <!-- Edge first-run experience hidden (corporate) -->
+        <RunSynchronousCommand wcm:action="add">
+          <Order>5</Order>
+          <Path>reg.exe add "HKLM\Software\Policies\Microsoft\Edge" /v HideFirstRunExperience /t REG_DWORD /d 1 /f</Path>
+        </RunSynchronousCommand>
+
+        <!-- Edge: no background mode and no startup boost -->
+        <RunSynchronousCommand wcm:action="add">
+          <Order>6</Order>
+          <Path>reg.exe add "HKLM\Software\Policies\Microsoft\Edge\Recommended" /v BackgroundModeEnabled /t REG_DWORD /d 0 /f</Path>
+        </RunSynchronousCommand>
+        <RunSynchronousCommand wcm:action="add">
+          <Order>7</Order>
+          <Path>reg.exe add "HKLM\Software\Policies\Microsoft\Edge\Recommended" /v StartupBoostEnabled /t REG_DWORD /d 0 /f</Path>
+        </RunSynchronousCommand>
+
+        <!-- Teams: do not auto-install consumer chat -->
+        <RunSynchronousCommand wcm:action="add">
+          <Order>8</Order>
+          <Path>reg.exe add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Communications" /v ConfigureChatAutoInstall /t REG_DWORD /d 0 /f</Path>
+        </RunSynchronousCommand>
+
+      </RunSynchronous>
+    </component>
+  </settings>
+
+  <!-- PASS oobeSystem. Locale, language, timezone are intentionally NOT set here. SetupComplete.cmd Tasks 2, 6, 7 own them (single source of truth). -->
+  <settings pass="oobeSystem">
+
+    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+
+      <UserAccounts>
+        <AdministratorPassword>
+          
+          <Value>!ChangeMe2026!</Value>
+          <PlainText>true</PlainText>
+        </AdministratorPassword>
+      </UserAccounts>
+
+      <AutoLogon>
+        <Username>Administrator</Username>
+        <Enabled>true</Enabled>
+        <LogonCount>1</LogonCount>
+        <Password>
+          <Value>!ChangeMe2026!</Value>
+          <PlainText>true</PlainText>
+        </Password>
+      </AutoLogon>
+
+      <OOBE>
+        <HideEULAPage>true</HideEULAPage>
+        <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
+        <HideOnlineAccountScreens>true</HideOnlineAccountScreens>
+        <ProtectYourPC>3</ProtectYourPC>
+        <SkipMachineOOBE>true</SkipMachineOOBE>
+        <SkipUserOOBE>true</SkipUserOOBE>
+      </OOBE>
+
+      <FirstLogonCommands>
+
+        <!-- 1. Disable AutoLogon for any subsequent boot (security) -->
+        <SynchronousCommand wcm:action="add">
+          <Order>1</Order>
+          <CommandLine>reg.exe add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v AutoAdminLogon /t REG_SZ /d "0" /f</CommandLine>
+          <Description>Disable AutoLogon after first logon</Description>
+        </SynchronousCommand>
+
+        <SynchronousCommand wcm:action="add">
+          <Order>2</Order>
+          <CommandLine>reg.exe delete "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v DefaultPassword /f</CommandLine>
+          <Description>Remove cached DefaultPassword from registry</Description>
+        </SynchronousCommand>
+
+        <!-- 3. Delete the Autounattend.xml left in Panther by Setup -->
+        <SynchronousCommand wcm:action="add">
+          <Order>3</Order>
+          <CommandLine>cmd.exe /c "del /q /f C:\Windows\Panther\unattend.xml &amp; del /q /f C:\Windows\Panther\unattend-original.xml"</CommandLine>
+          <Description>Remove unattend.xml (contains plain text password)</Description>
+        </SynchronousCommand>
+
+        <!-- 4. Clean up Windows.old if Setup left one -->
+        <SynchronousCommand wcm:action="add">
+          <Order>4</Order>
+          <CommandLine>cmd.exe /c "rmdir /s /q C:\Windows.old"</CommandLine>
+          <Description>Remove Windows.old</Description>
+        </SynchronousCommand>
+
+        <!-- 5. Enter audit mode automatically for hardening + Sysprep prep -->
+        <SynchronousCommand wcm:action="add">
+          <Order>5</Order>
+          <CommandLine>C:\Windows\System32\Sysprep\sysprep.exe /audit /reboot /quiet</CommandLine>
+          <Description>Reboot into audit mode for ORG hardening</Description>
+        </SynchronousCommand>
+
+      </FirstLogonCommands>
+
+    </component>
+  </settings>
+
+</unattend>
