@@ -1,4 +1,9 @@
 # Windows 11 Golden Image Builder
+![PowerShell](https://img.shields.io/badge/PowerShell-5.1+-blue)
+![Windows 11](https://img.shields.io/badge/Windows-11-0078D4)
+![License](https://img.shields.io/badge/License-Apache%202.0-green)
+![Status](https://img.shields.io/badge/Status-Active-success)
+![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey)
 
 A self-contained PowerShell pipeline that produces a hardened, debloated Windows 11 Enterprise
 ISO, ready for deployment via MDT/SCCM/Autopilot or straight USB install. Originally built for a
