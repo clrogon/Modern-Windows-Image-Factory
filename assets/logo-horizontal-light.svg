@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="120" viewBox="0 0 560 120">
+  <rect width="560" height="120" rx="20" fill="#FCFCFA" stroke="#D9D7D4"/>
+  <g transform="translate(32, 24)">
+    <svg width="72" height="72" viewBox="0 0 128 128">
+      <rect x="24" y="30" width="80" height="16" rx="3" fill="#EBA941"/>
+      <rect x="24" y="52" width="80" height="16" rx="3" fill="#CD9130"/>
+      <rect x="24" y="74" width="80" height="16" rx="3" fill="#B07A20"/>
+      <rect x="16" y="96" width="96" height="6" rx="3" fill="#1F2730"/>
+      <circle cx="30" cy="106" r="5" fill="#1F2730"/>
+      <circle cx="98" cy="106" r="5" fill="#1F2730"/>
+    </svg>
+  </g>
+  <text x="120" y="52" font-family="IBM Plex Mono, monospace" font-size="14" letter-spacing="2.5" fill="#A36E09">MODERN</text>
+  <text x="120" y="86" font-family="Archivo, sans-serif" font-size="30" font-weight="800" letter-spacing="-0.3" fill="#1F2730">Windows Image Factory</text>
+</svg>
