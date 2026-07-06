@@ -22,7 +22,7 @@
       $OEM$\$$\Setup\Scripts -> C:\Windows\Setup\Scripts\
 
 .PARAMETER Apply
-    Default $false (dry-run). Set $true to execute.
+    Default $false (dry-run). Pass -Apply to execute.
 
 .NOTES
     Document: WIN11-GOLDIMG-001 v2.4
@@ -42,7 +42,7 @@
 
 [CmdletBinding()]
 param(
-    [bool]$Apply = $true
+    [switch]$Apply
 )
 
 Set-StrictMode -Version Latest
@@ -387,6 +387,6 @@ Write-Log ''
 Write-Log '========== 06 complete =========='
 if (-not $Apply) {
     Write-Log ''
-    Write-Log '*** DRY-RUN. Re-run with -Apply $true to execute. ***' 'WARN'
+    Write-Log '*** DRY-RUN. Re-run with -Apply to execute. ***' 'WARN'
 }
 Write-Log "Next: run 11-Build-Iso.ps1" 'NEXT'

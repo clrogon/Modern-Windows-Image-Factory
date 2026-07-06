@@ -9,10 +9,13 @@
 # attribute travels with ISO file copies and breaks subsequent phases
 # (mounting the WIM, writing OEM folders, oscdimg packing).
 #
-# Run as Administrator. Set $Apply = $true to execute (default: dry-run).
+# Run as Administrator. Pass -Apply to execute (default: dry-run).
 # =============================================================================
 
-$Apply       = $true
+[CmdletBinding()]
+param(
+    [switch]$Apply
+)
 
 # --- Source and destination ---
 $ISOFile     = "E:\ISO\SW_DVD9_Win_Pro_11_25H2.7_64BIT_English_Pro_Ent_EDU_N_MLF_X24-30433.ISO"
