@@ -1,0 +1,26 @@
+flowchart TD
+    Start(["Operator on build server"]) --> S01["01 Unblock-Scripts\nstrip MOTW, check exec policy, prep folders\n(no mutation)"]
+    S01 --> S02["02 Extract-Iso\nmount ISO, robocopy, clear read-only\n(mutates E:\\ISO\\...)"]
+    S02 --> S03["03 Initialize-BuildEnvironment\nverify layout, ADK, tools\n(no mutation)"]
+    S03 --> S04["04 Remove-ProvisionedApps\nMOUNT install.wim, remove AppX + capabilities"]
+    S04 --> S05["05 Remove-SystemApps\nremove SystemApps folders\n(Quick Assist, Search, Cortana)"]
+    S05 --> S06["06 Remove-OneDrive\nremove OneDriveSetup.exe\n+ reinstall-suppression keys"]
+    S06 --> S07["07 Enable-DotNet35\nenable NetFx3 offline via DISM"]
+    S07 --> S08["08 Import-DefaultAppAssociations\noffline DISM default associations import"]
+    S08 --> S09["09 Dismount-Image\nDISMOUNT install.wim -Save\n(commits 04-08)"]
+    S09 --> S10["10 Build-OemLayer\nbuild sources\\$OEM$\\ tree:\ndrivers, branding, SetupComplete, AuditMode"]
+    S10 --> S11["11 Build-Iso\nstage Autounattend.xml,\noscdimg bootable ISO, SHA256 manifest"]
+    S11 --> Out(["Win11_25H2_Custom.iso + manifest"])
+
+    subgraph MOUNTED["install.wim mounted at E:\\WimMount"]
+        S04
+        S05
+        S06
+        S07
+        S08
+    end
+
+    Diag1["Diagnostics\\Diagnose-AppxAndCapabilities.ps1\n(read-only)"] -.->|"run anytime while mounted"| MOUNTED
+    Diag2["Diagnostics\\Diagnose-Removal.ps1\n(read-only)"] -.->|"run anytime while mounted"| MOUNTED
+
+    style MOUNTED fill:#00000000,stroke-dasharray: 5 5
