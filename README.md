@@ -71,10 +71,10 @@ Two variants from that one base:
 | **THIN** | OS + drivers + branding + hardening. No apps. Apps layered at deployment (Intune/SCCM/etc). |
 | **THICK** | THIN + M365 Apps and Adobe Acrobat baked in, as working examples of the two installer patterns (ODT and silent EXE/MSI). Add whatever else your org needs - see `AuditMode/Software/Install-ImageSoftware.ps1`. |
 
-OneDrive and Teams are removed offline and excluded from the Office config on purpose - see
-`AuditMode/Software/ODT/ODT_SemiAnnual.xml` for why. The deployment team owns those two
-post-image via Intune/GPO instead. This decision cost the original team repeated support tickets
-before they made it the default; keeping it as the default here too.
+The consumer/inbox OneDrive and Teams clients are removed offline - those bundled clients cost
+the original team repeated support tickets (personal-account prompts, stale tenant cache, double
+icons). The enterprise OneDrive for Business and Teams (work) clients are different products and
+ship in THICK builds via the M365 Apps ODT config - see `AuditMode/Software/ODT/ODT_SemiAnnual.xml`.
 
 ## Quick start
 
@@ -120,7 +120,7 @@ here will silently apply your identity to someone else's fleet - you have to go 
 | Wallpaper / lock screen images | `Branding/` | folder is empty - see `Branding/README.md` |
 | Domain / GPO backup source | `GPO-Backup/README.md`, `Defaults/README.md`, `LGPO/README.md` | `corp.contoso.local` |
 | Sysprep answer file admin password | `OEM-Template/Autounattend.xml` | `!ChangeMe2026!` (this is a **plaintext password in an unattend file** - audit-mode reference VM only, never on a domain-joined or internet-facing box) |
-| Locale / timezone defaults | `AuditMode/Apply-PostInstallCustomization.ps1` | `en-US` / `Eastern Standard Time` - these are just examples, set them to your market |
+| Locale / timezone defaults | `AuditMode/Apply-PostInstallCustomization.ps1` | Set to `pt-AO` / `W. Central Africa Standard Time` (Angola) for this deployment - change `$LocaleName`/`$Timezone`/`$GeoId`/`$GeoName` if deploying elsewhere |
 | M365 config ID / product list | `AuditMode/Software/ODT/ODT_SemiAnnual.xml` | `ORG-M365-SemiAnnual` |
 | THICK software beyond M365/Adobe | `AuditMode/Software/Install-ImageSoftware.ps1` | commented `$AppDefinitions` template entry |
 

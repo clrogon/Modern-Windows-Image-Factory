@@ -55,14 +55,15 @@ not ship ~4+ GB of dead weight to every deployed machine:
 Remove-Item -Path C:\AuditMode -Recurse -Force
 ```
 
-> OneDrive / Teams - NOT in the image (thin or thick):
-> OneDrive and Teams ARE ODT apps (`ExcludeApp ID="OneDrive"` = "OneDrive Desktop";
-> `ExcludeApp ID="Teams"`). If left IN the ODT config, M365 Apps installs the
-> per-USER clients into each profile's AppData - the same clients removed in the
-> offline build. ORG decision (real-world, overrides vendor per-machine guidance):
-> these bundled clients caused repeated deployment failures that forced the support
-> team to manually uninstall/reinstall. They are therefore EXCLUDED in the ODT XML
-> and NOT installed by this script. The deployment team owns them post-image.
+> OneDrive / Teams - enterprise versions ARE in THICK, via ODT:
+> The CONSUMER/inbox OneDrive and Teams clients are removed offline (script 06;
+> Lists/ApprovedRemoval-Apps.txt) because those bundled clients caused repeated
+> deployment failures (personal-account prompts, stale tenant cache, double
+> icons) that forced the support team to manually uninstall/reinstall. The
+> ENTERPRISE OneDrive for Business and Teams (work) clients are different
+> products - they now install as part of the M365 Apps ODT config
+> (`AuditMode/Software/ODT/ODT_SemiAnnual.xml`, no longer excluded), signed in
+> to the ORG tenant like the rest of Office.
 
 > ODT note: no `SourcePath` in the config (removed for portability). setup.exe
 > resolves `Office\Data` relative to its working directory. Both the download helper
@@ -136,7 +137,7 @@ Then reboot if prompted, verify, Sysprep + capture.
 
 ## Confirmed decisions
 
-1. **OneDrive + Teams are NOT in the image** (thin or thick) - real-world decision driven by repeated deployment failures from the bundled clients. Removed offline, excluded in ODT, not re-installed. Owned by the deployment team post-image (Intune/GPO/managed install). Keep the image-vs-GPO split table (Appendix F) consistent with this.
+1. **Consumer OneDrive/Teams are removed offline; enterprise OneDrive for Business + Teams (work) ship in THICK via ODT.** These are different products - the consumer/inbox clients caused the repeated deployment failures (personal-account prompts, stale tenant cache, double icons), not the enterprise ones. Removed offline (script 06, Lists), installed via M365 ODT (no longer excluded). Keep the image-vs-GPO split table (Appendix F) consistent with this.
 2. **Only M365 Apps and Adobe Acrobat ship as examples in THICK.** They're the two installer patterns (ODT and silent EXE) you'll need for almost anything else you add - copy the template entry in `Install-ImageSoftware.ps1` for additional packages.
 
 ---

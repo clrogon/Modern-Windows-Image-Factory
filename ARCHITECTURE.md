@@ -154,7 +154,7 @@ flowchart TD
     Profile -->|"THIN"| SysprepThin["No software baked in"]
     Profile -->|"THICK"| SoftwareInstall["Install-ImageSoftware.ps1 -ImageProfile Thick\n(M365 via ODT, Adobe Acrobat)"]
     SoftwareInstall --> Cleanup
-    SysprepThin --> Cleanup["Cleanup (manual step today):\ndelete C:\\AuditMode, C:\\Drivers"]
+    SysprepThin --> Cleanup["Cleanup (manual step today):\ndelete C:\\AuditMode\n(C:\\Drivers is auto-removed by\nSetupComplete.cmd Task 6)"]
     Cleanup --> Sysprep["Sysprep /generalize /oobe /shutdown"]
     Sysprep --> Capture["Capture WIM\n(DISM / MDT / SCCM)"]
     Capture --> Deploy["Deploy via MDT / SCCM / Intune / Autopilot"]
@@ -192,9 +192,10 @@ Everything the pipeline consumes but doesn't ship pre-populated:
 - **No CI.** `ROADMAP.md` lists PSScriptAnalyzer and a GitHub Actions validation
   pipeline as v2.6 targets — today nothing automatically checks the PowerShell in this
   repo on push.
-- **`C:\AuditMode` and `C:\Drivers` cleanup is manual**, not scripted (see
+- **`C:\AuditMode` cleanup is manual**, not scripted (see
   `AuditMode/Software/README.md`). Forgetting it ships installer binaries and hardening
-  scripts to every deployed endpoint.
+  scripts to every deployed endpoint. (`C:\Drivers` is no longer in this category —
+  `SetupComplete.cmd` Task 6, v2.5+, removes it automatically after the PnP scan.)
 
 ## 7. Where the diagrams live
 

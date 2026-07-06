@@ -24,6 +24,7 @@ without any Sysprep or post-install scripting.
 | **3. Lock screen** | Disables Windows Spotlight, then sets `HKLM\...\PersonalizationCSP\LockScreenImagePath`/`LockScreenImageUrl`/`LockScreenImageStatus` to `LockScreen.jpg` |
 | **4. OEM Information** | Populates `HKLM\...\OEMInformation` with manufacturer, model, support phone/hours/URL/provider **text fields only** — no logo (see below) |
 | **5. Sanity checks** | Logs whether the wallpaper/lock-screen files and `C:\Drivers` were actually present, and the current `.inf` count |
+| **6. Remove `C:\Drivers`** | Deletes the staged driver tree (v2.5+) now that Task 1's PnP scan has bound whatever it found — otherwise its full contents (`.inf`, plus any `.exe`/`.cab`/`.msi` passengers that rode along) would sit on every deployed machine forever. Trade-off: this also removes `DevicePath`'s ability to serve a driver to hardware attached *after* first boot (e.g. a dock connected next month) — if you need that, drop Task 6 and keep `C:\Drivers`. |
 
 ## How `SetupComplete.cmd` is triggered
 

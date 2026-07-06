@@ -19,14 +19,15 @@
               Add your own packages to $AppDefinitions below - see the
               commented template entry for the pattern.
 
-    OneDrive + Teams are deliberately NOT in the image (thin OR thick). They are
-    removed in the offline build (scripts 04/06) and EXCLUDED in the ODT config
-    (ExcludeApp OneDrive/Teams) so M365 cannot re-add the per-user clients.
-    Decision (real-world, overrides vendor per-machine guidance): the bundled
-    OneDrive/Teams clients caused repeated deployment failures that forced the
-    support team to manually uninstall and reinstall. ORG owns their deployment
-    post-image (Intune/GPO/managed install), keeping full control over what lands
-    on the machine. ODT installs the Office apps only.
+    The CONSUMER/inbox OneDrive and Teams clients are removed offline (script 06
+    removes OneDriveSetup.exe; Lists/ApprovedRemoval-Apps.txt removes the Teams
+    personal app + legacy inbox MSTeams). Those bundled clients caused repeated
+    deployment failures (personal-account prompts, stale tenant cache, double
+    icons) that forced the support team to manually uninstall and reinstall.
+    The ENTERPRISE OneDrive for Business and Teams (work) clients are different
+    products - they now ship via this THICK install, as part of the M365 Apps
+    ODT config (see AuditMode/Software/ODT/ODT_SemiAnnual.xml), signed in to the
+    ORG tenant like the rest of Office.
 
     Installer binaries are staged on the BUILD SERVER in E:\Build\AuditMode\Software\
     and ride the ISO to C:\AuditMode\Software\ on the reference VM automatically
@@ -189,7 +190,7 @@ if ($ImageProfile -eq 'Thin') {
 
 # Build the install set for THICK
 $appsToInstall = @($AppDefinitions | Where-Object { $_.Profile -eq 'Thick' })
-Write-Log 'OneDrive + Teams are intentionally NOT in the image (removed offline + excluded in ODT). The deployment team installs/manages them post-image.' 'INFO'
+Write-Log 'Consumer OneDrive/Teams removed offline; enterprise OneDrive for Business + Teams (work) install via M365 ODT below.' 'INFO'
 Write-Log "Apps selected for THICK: $($appsToInstall.Count)"
 
 # Pre-flight path validation (always runs)

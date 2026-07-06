@@ -31,8 +31,10 @@ WHAT THIS FILE DOES NOT DO (by design, no duplication of build chain)
                                            (Tasks 6-7) - OPTIONAL, NOT run automatically.
                                            SetupComplete.cmd does not set these; if you
                                            need them out of the box, run that script in
-                                           audit mode (and fix its en-US/Eastern-Standard-
-                                           Time defaults to your own market first).
+                                           audit mode. Defaults are set for Angola
+                                           (pt-AO / W. Central Africa Standard Time /
+                                           GeoId 9) - change them first if deploying
+                                           elsewhere.
 * CMTrace registration                   : AuditMode\Apply-PostInstallCustomization.ps1
                                            (Task 5) - same caveat, not automatic.
 * Security baseline (SCT, CIS, VBS)      : Apply-SecurityBaseline.ps1 in audit mode
