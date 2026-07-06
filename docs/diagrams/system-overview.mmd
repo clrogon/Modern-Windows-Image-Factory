@@ -1,0 +1,23 @@
+flowchart TB
+    subgraph Inputs["Operator-provided inputs (not shipped in the repo)"]
+        ISO["Win11 Enterprise/Pro ISO"]
+        ADK["Windows ADK (oscdimg.exe)"]
+        Lists["Lists/ removal lists"]
+        Branding["Branding/ wallpaper + lock screen"]
+        Drivers["Drivers-SCCM/ driver trees"]
+        Baseline["SCT/ + LGPO/ + GPO-Backup/"]
+        Software["AuditMode/Software/ installer binaries"]
+    end
+
+    subgraph BuildServer["Phase 1 - Build Server (Scripts/ 01-11)"]
+        Pipeline["Offline WIM servicing\n+ OEM layer\n+ ISO repackage"]
+    end
+
+    subgraph RefVM["Phase 2 - Reference VM (AuditMode/)"]
+        Audit["Audit mode:\nhardening baseline (roadmap)\n+ software layer (THIN/THICK)\n+ Sysprep"]
+    end
+
+    Inputs --> BuildServer
+    BuildServer -->|"Custom bootable ISO"| RefVM
+    RefVM -->|"Sysprep /generalize + capture"| Image["Captured reference WIM\n(THIN or THICK)"]
+    Image --> Deploy["MDT / SCCM / Intune / Autopilot / USB install"]

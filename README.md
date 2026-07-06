@@ -61,6 +61,9 @@ Two phases, one base image:
 - **Build server** (`Scripts/01` -> `11`): offline WIM servicing + ISO repackage. No VM needed.
 - **Reference VM** (`AuditMode/`): security baseline + optional software layer + Sysprep + capture.
 
+See `ARCHITECTURE.md` for the full pipeline, `$OEM$` delivery mapping, and audit-mode
+flow, with diagrams (also kept as standalone Mermaid files in `docs/diagrams/`).
+
 Two variants from that one base:
 
 | Variant | Contents |

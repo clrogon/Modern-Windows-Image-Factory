@@ -1,0 +1,33 @@
+graph LR
+    subgraph ISO["Build media: sources\\$OEM$\\ tree (built by script 10)"]
+        A["$$\\Setup\\Scripts\\SetupComplete.cmd"]
+        B["$$\\Web\\Wallpaper\\CompanyBrand\\Wallpaper.jpg"]
+        C["$$\\Web\\Wallpaper\\CompanyBrand\\LockScreen.jpg"]
+        D["$1\\Drivers\\ (full Drivers-SCCM tree)"]
+        E["$1\\AuditMode\\ (hardening + software scripts)"]
+        F["$$\\System32\\CMTrace.exe"]
+        G["Autounattend.xml (ISO root, staged by script 11)"]
+    end
+
+    subgraph TARGET["Target machine after Windows Setup"]
+        A2["C:\\Windows\\Setup\\Scripts\\SetupComplete.cmd"]
+        B2["C:\\Windows\\Web\\Wallpaper\\CompanyBrand\\Wallpaper.jpg"]
+        C2["C:\\Windows\\Web\\Wallpaper\\CompanyBrand\\LockScreen.jpg"]
+        D2["C:\\Drivers\\"]
+        E2["C:\\AuditMode\\"]
+        F2["C:\\Windows\\System32\\CMTrace.exe"]
+        G2["Answers Setup prompts,\nenters audit mode automatically"]
+    end
+
+    A -->|"$$ = %WINDIR%"| A2
+    B -->|"$$ = %WINDIR%"| B2
+    C -->|"$$ = %WINDIR%"| C2
+    D -->|"$1 = system drive"| D2
+    E -->|"$1 = system drive"| E2
+    F -->|"$$ = %WINDIR%"| F2
+    G --> G2
+
+    A2 -->|"reads at first boot, as SYSTEM"| B2
+    A2 -->|"reads at first boot, as SYSTEM"| C2
+    A2 -->|"DevicePath + pnputil scan"| D2
+    G2 -->|"FirstLogonCommands: sysprep /audit /reboot"| E2
