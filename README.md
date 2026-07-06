@@ -99,6 +99,16 @@ Set-Location Scripts
 Full run order, recovery commands, and why there are three separate offline-removal scripts:
 see `Scripts/README.md`.
 
+## Screenshots
+
+_Placeholders below - swap in real captures from your own build. See
+`docs/screenshots/README.md` for what each one should show and how to capture it._
+
+| | |
+|---|---|
+| ![Branded desktop wallpaper placeholder](docs/screenshots/branded-wallpaper.svg)<br>Desktop wallpaper after first logon | ![Branded lock screen placeholder](docs/screenshots/branded-lockscreen.svg)<br>Lock screen |
+| ![OEM Information in Settings placeholder](docs/screenshots/oem-info-settings.svg)<br>`Settings > About` OEM Information | ![Audit mode boot placeholder](docs/screenshots/audit-mode-boot.svg)<br>Reference VM entering audit mode |
+
 ## Before you use this for real
 
 This repo ships with obvious placeholders instead of your organization's real values. Nothing

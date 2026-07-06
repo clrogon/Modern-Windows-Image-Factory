@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#1b1f24"/>
+  <rect x="16" y="16" width="1248" height="688" fill="none" stroke="#5b6472" stroke-width="3" stroke-dasharray="14 10" rx="12"/>
+  <text x="640" y="320" font-family="Segoe UI, Arial, sans-serif" font-size="40" fill="#e6e9ee" text-anchor="middle" font-weight="600">SCREENSHOT PLACEHOLDER</text>
+  <text x="640" y="372" font-family="Segoe UI, Arial, sans-serif" font-size="26" fill="#9aa4b2" text-anchor="middle">Reference VM entering audit mode</text>
+  <text x="640" y="416" font-family="Segoe UI, Arial, sans-serif" font-size="20" fill="#767f8c" text-anchor="middle">Ctrl+Shift+F3 at OOBE, or automatic via Autounattend.xml FirstLogonCommands</text>
+  <text x="640" y="452" font-family="Segoe UI, Arial, sans-serif" font-size="20" fill="#767f8c" text-anchor="middle">Replace this file with a real capture: docs/screenshots/audit-mode-boot.png</text>
+</svg>
