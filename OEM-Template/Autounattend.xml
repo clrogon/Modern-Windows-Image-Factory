@@ -25,12 +25,18 @@ WHAT THIS FILE DOES NOT DO (by design, no duplication of build chain)
 * Reinstall suppression registry keys    : script 04
 * .NET Framework 3.5 enablement          : script 04b
 * OEMDefaultAssociations import          : script 04c
-* Branding (wallpaper, lockscreen, OEM)  : SetupComplete.cmd
-* DevicePath, pnputil scan               : SetupComplete.cmd
-* Timezone (example default, change to your market) : SetupComplete.cmd Task 6
-* Locale / GeoID         : SetupComplete.cmd Tasks 2 and 7
-* CMTrace registration                   : SetupComplete.cmd Task 5
+* Branding (wallpaper, lockscreen, OEM)  : SetupComplete.cmd (Tasks 2-4)
+* DevicePath, pnputil scan               : SetupComplete.cmd (Task 1)
+* Timezone, Locale, GeoID                : AuditMode\Apply-PostInstallCustomization.ps1
+                                           (Tasks 6-7) - OPTIONAL, NOT run automatically.
+                                           SetupComplete.cmd does not set these; if you
+                                           need them out of the box, run that script in
+                                           audit mode (and fix its en-US/Eastern-Standard-
+                                           Time defaults to your own market first).
+* CMTrace registration                   : AuditMode\Apply-PostInstallCustomization.ps1
+                                           (Task 5) - same caveat, not automatic.
 * Security baseline (SCT, CIS, VBS)      : Apply-SecurityBaseline.ps1 in audit mode
+                                           - NOT YET SHIPPED, see ROADMAP.md v2.6.
 
 SECURITY NOTES
 1. AdministratorPassword and AutoLogon password are stored in plain text.
