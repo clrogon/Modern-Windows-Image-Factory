@@ -18,10 +18,14 @@
 # Run BEFORE 06-Remove-OneDrive.ps1 (logical ordering with other offline
 # file removals; both happen while WIM is mounted).
 #
-# Run as Administrator. Set $Apply = $true to execute (default: dry-run).
+# Run as Administrator. Pass -Apply to execute (default: dry-run).
 # =============================================================================
 
-$Apply       = $false
+[CmdletBinding()]
+param(
+    [switch]$Apply
+)
+
 $MountPath   = "E:\WimMount"
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 $LogPath     = Join-Path $ProjectRoot "Logs\03b-SystemComponents-$(Get-Date -Format yyyyMMdd-HHmmss).log"

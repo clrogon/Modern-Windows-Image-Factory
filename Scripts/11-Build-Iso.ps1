@@ -15,7 +15,7 @@
       - E:\ISO\Win11_25H2_Custom_<date>.iso.manifest.txt (SHA256)
 
 .PARAMETER Apply
-    Default $false (dry-run). Set $true to execute.
+    Default $false (dry-run). Pass -Apply to execute.
 
 .NOTES
     Document: WIN11-GOLDIMG-001 v2.3.2
@@ -32,7 +32,7 @@
 
 [CmdletBinding()]
 param(
-    [bool]$Apply = $true
+    [switch]$Apply
 )
 
 Set-StrictMode -Version Latest
@@ -150,12 +150,17 @@ if (-not (Test-Path $AutounattendSrc)) {
         throw 'Autounattend.xml validation failed'
     }
 
-    # Check for password placeholder still present (safety net)
+    # Check for the shipped default/placeholder password (safety net).
+    # Must match the actual placeholder in OEM-Template\Autounattend.xml (see its
+    # header comment and the root README's placeholder table) - not a made-up string.
     $XmlText = Get-Content -Path $AutounattendSrc -Raw
-    if ($XmlText -match 'REPLACE_WITH_EPHEMERAL_PWD') {
-        Write-Log 'Autounattend.xml still contains REPLACE_WITH_EPHEMERAL_PWD placeholder' 'ERROR'
-        Write-Log 'Substitute a real ephemeral password before building.' 'ERROR'
-        exit 1
+    $DefaultPasswordPlaceholders = @('!ChangeMe2026!', 'REPLACE_WITH_EPHEMERAL_PWD')
+    foreach ($placeholder in $DefaultPasswordPlaceholders) {
+        if ($XmlText -match [regex]::Escape($placeholder)) {
+            Write-Log "Autounattend.xml still contains the default placeholder password ($placeholder)" 'ERROR'
+            Write-Log 'Substitute a real ephemeral password before building.' 'ERROR'
+            exit 1
+        }
     }
 
     # Detect overlap with SetupComplete.cmd (informational only)
@@ -319,7 +324,7 @@ Write-Log ''
 Write-Log '========== 07 complete =========='
 if (-not $Apply) {
     Write-Log ''
-    Write-Log '*** DRY-RUN. Re-run with -Apply $true to execute. ***' 'WARN'
+    Write-Log '*** DRY-RUN. Re-run with -Apply to execute. ***' 'WARN'
 } else {
     Write-Log ''
     Write-Log "*** ISO ready at: $ISOOutput ***" 'OK'

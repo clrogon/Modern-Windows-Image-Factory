@@ -13,7 +13,7 @@
     Runs AFTER script 04b (NetFx3) and BEFORE script 09 (dismount).
 
 .PARAMETER Apply
-    Default $false (dry-run). Set $true to execute.
+    Default $false (dry-run). Pass -Apply to execute.
 
 .NOTES
     Document: WIN11-GOLDIMG-001 v2.3
@@ -26,7 +26,7 @@
 
 [CmdletBinding()]
 param(
-    [bool]$Apply = $true
+    [switch]$Apply
 )
 
 Set-StrictMode -Version Latest
@@ -130,6 +130,6 @@ Write-Log '========== 04c complete =========='
 
 if (-not $Apply) {
     Write-Log ''
-    Write-Log '*** DRY-RUN. Re-run with -Apply $true to execute. ***' 'WARN'
+    Write-Log '*** DRY-RUN. Re-run with -Apply to execute. ***' 'WARN'
     Write-Log "Next: run 09-Dismount-Image.ps1" 'NEXT'
 }

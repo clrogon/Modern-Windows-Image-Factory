@@ -8,10 +8,14 @@
 # OneDrive removed in script 04). Separated into its own script so the
 # operator has a clear commit gate.
 #
-# Run as Administrator. Set $Apply = $true to execute (default: dry-run).
+# Run as Administrator. Pass -Apply to execute (default: dry-run).
 # =============================================================================
 
-$Apply       = $true
+[CmdletBinding()]
+param(
+    [switch]$Apply
+)
+
 $MountPath   = "E:\WimMount"
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 $LogPath     = Join-Path $ProjectRoot "Logs\DismountImage-$(Get-Date -Format yyyyMMdd-HHmmss).log"

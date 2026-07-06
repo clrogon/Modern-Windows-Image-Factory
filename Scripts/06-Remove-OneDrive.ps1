@@ -14,10 +14,14 @@
 #
 # Prerequisite: WIM is currently mounted at $MountPath (by script 03).
 #
-# Run as Administrator. Set $Apply = $true to execute (default: dry-run).
+# Run as Administrator. Pass -Apply to execute (default: dry-run).
 # =============================================================================
 
-$Apply       = $true
+[CmdletBinding()]
+param(
+    [switch]$Apply
+)
+
 $MountPath   = "E:\WimMount"
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 $LogPath     = Join-Path $ProjectRoot "Logs\04-OneDriveRemoval-$(Get-Date -Format yyyyMMdd-HHmmss).log"

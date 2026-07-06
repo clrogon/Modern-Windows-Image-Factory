@@ -19,10 +19,13 @@
 #   - Final summary reports counts: matched, removed, skipped, failed
 #   - Non-zero failed count surfaces with a red WARNING line
 #
-# Run as Administrator. Set $Apply = $true to execute (default: dry-run).
+# Run as Administrator. Pass -Apply to execute (default: dry-run).
 # =============================================================================
 
-$Apply       = $true
+[CmdletBinding()]
+param(
+    [switch]$Apply
+)
 
 $WimPath     = "E:\ISO\Win11_25H2_7\sources\install.wim"
 $MountPath   = "E:\WimMount"
