@@ -21,7 +21,7 @@
 
 ## Everything rides the ISO (self-contained, fully disconnected)
 
-All installer binaries are staged into `E:\Build\AuditMode\Software\` on the build
+All installer binaries are staged into `<ProjectRoot>\AuditMode\Software\` on the build
 server. Script 10 copies the entire `AuditMode\` tree into `$OEM$\$1\AuditMode`, and
 11 packs it into the ISO. When the ISO installs on the reference VM, everything
 lands at `C:\AuditMode\Software\` automatically - no USB hand-copy, no network share,
@@ -29,7 +29,7 @@ no separate staging step. The ISO is the single, self-contained build medium.
 
 **Build-server layout (stage binaries here before running 10):**
 ```
-E:\Build\AuditMode\Software\
+<ProjectRoot>\AuditMode\Software\
     Install-ImageSoftware.ps1  (version-controlled - ships in ZIP)
     README.md                       (version-controlled)
     ODT\
@@ -68,7 +68,7 @@ Remove-Item -Path C:\AuditMode -Recurse -Force
 > ODT note: no `SourcePath` in the config (removed for portability). setup.exe
 > resolves `Office\Data` relative to its working directory. Both the download helper
 > and the installer set `-WorkingDirectory` to the ODT folder, so it works on the
-> build server (E:\Build\...) and the reference VM (C:\AuditMode\...) without path conflicts.
+> build server (`<ProjectRoot>\...`) and the reference VM (`C:\AuditMode\...`) without path conflicts.
 > `AllowCdnFallback=FALSE` means the source MUST be present locally.
 
 ---
@@ -81,7 +81,7 @@ pull a different channel build each day; pre-downloading pins it.
 
 ```powershell
 # On the build server (needs internet for this one step only).
-cd E:\Build\AuditMode\Software\ODT
+cd <ProjectRoot>\AuditMode\Software\ODT
 .\Download-OfficeSource.ps1                 # dry run (validates setup.exe + config)
 .\Download-OfficeSource.ps1 -Apply $true    # downloads to ODT\Office\Data\<build>
 ```
@@ -104,7 +104,7 @@ enterprise path:
    customisation is baked in (no separate Customization Wizard / `.mst` needed).
 2. **Download the package** (~2.7 GB). It contains a `build\` subfolder with
    `setup.exe` + `Acrobat.msi` and supporting files.
-3. **Stage the package as-is** at `E:\Build\AuditMode\Software\AdobeAcrobat\` (keep
+3. **Stage the package as-is** at `<ProjectRoot>\AuditMode\Software\AdobeAcrobat\` (keep
    the `build\` subfolder structure). The installer runs `setup.exe --silent`.
 4. Named-user activation happens at first user sign-in post-deploy - do NOT
    activate in the image.
