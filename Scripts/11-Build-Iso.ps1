@@ -32,22 +32,43 @@
 
 [CmdletBinding()]
 param(
-    [switch]$Apply
+    [switch]$Apply,
+    [string]$IsoExtractDir,
+    [string]$IsoOutputDir,
+    [string]$AdkOscdimgPath
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 # --- Configuration ---
-$Win11Version  = '25H2'
-$ISOExtractDir = "E:\ISO\Win11_${Win11Version}_7"
-$BuildRoot     = 'E:\Build'
-$ISOOutputDir  = 'E:\ISO'
+# BuildRoot is the actual folder this repo lives in - see 10-Build-OemLayer.ps1
+# for why a hardcoded 'E:\Build' here silently breaks any other checkout path.
+$BuildRoot     = Split-Path -Parent $PSScriptRoot
+$Config        = Import-PowerShellDataFile -Path (Join-Path $PSScriptRoot 'BuildConfig.psd1')
+$Win11Version  = $Config.Win11Version
+if (-not $IsoExtractDir) { $IsoExtractDir = $Config.ExtractDest }
+if (-not $IsoOutputDir)  { $IsoOutputDir  = $Config.IsoOutputDir }
+$ISOExtractDir  = $IsoExtractDir
+$ISOOutputDir   = $IsoOutputDir
 $OEMTemplateSrc = Join-Path $BuildRoot 'OEM-Template'
 
-# ADK path on the ORG build server (non-standard)
-$ADKPath = 'E:\Windows assessment and deployed kit\Assessment and Deployment Kit\Deployment Tools\amd64\Oscdimg'
-$Oscdimg = Join-Path $ADKPath 'oscdimg.exe'
+# ADK path: config override first, then standard install locations. The old
+# hardcoded single path here (non-standard, misspelled ADK folder name) had
+# no fallback - if your build server didn't have that exact typo'd path, this
+# script failed outright with no other option tried.
+if (-not $AdkOscdimgPath) { $AdkOscdimgPath = $Config.AdkOscdimgPath }
+$adkCandidates = @()
+if ($AdkOscdimgPath) { $adkCandidates += $AdkOscdimgPath }
+$adkCandidates += @(
+    "${env:ProgramFiles(x86)}\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64\Oscdimg\oscdimg.exe",
+    "C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64\Oscdimg\oscdimg.exe",
+    "E:\Windows assessment and deployed kit\Assessment and Deployment Kit\Deployment Tools\amd64\Oscdimg\oscdimg.exe"
+)
+$Oscdimg = $adkCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+if (-not $Oscdimg) {
+    throw "oscdimg.exe not found. Set AdkOscdimgPath in Scripts\BuildConfig.psd1 or pass -AdkOscdimgPath."
+}
 
 $ISOLabel  = "WIN11_${Win11Version}"
 $ISODate   = Get-Date -Format 'yyyyMMdd'

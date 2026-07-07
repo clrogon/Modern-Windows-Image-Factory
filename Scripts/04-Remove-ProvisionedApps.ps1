@@ -20,18 +20,25 @@
 #   - Non-zero failed count surfaces with a red WARNING line
 #
 # Run as Administrator. Pass -Apply to execute (default: dry-run).
+# Defaults for -WimPath/-MountPath/-Index come from Scripts\BuildConfig.psd1.
 # =============================================================================
+#Requires -RunAsAdministrator
 
 [CmdletBinding()]
 param(
-    [switch]$Apply
+    [switch]$Apply,
+    [string]$WimPath,
+    [string]$MountPath,
+    [int]$Index
 )
 
-$WimPath     = "E:\ISO\Win11_25H2_7\sources\install.wim"
-$MountPath   = "E:\WimMount"
-$Index       = 3   # Windows 11 Enterprise (confirm via 02-Extract-Iso.ps1)
-
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
+$Config      = Import-PowerShellDataFile -Path (Join-Path $PSScriptRoot 'BuildConfig.psd1')
+
+if (-not $WimPath)   { $WimPath   = Join-Path $Config.ExtractDest 'sources\install.wim' }
+if (-not $MountPath) { $MountPath = $Config.MountPath }
+if (-not $Index)     { $Index     = $Config.WimIndex }
+
 $LogPath     = Join-Path $ProjectRoot "Logs\RemoveProvisionedApps-$(Get-Date -Format yyyyMMdd-HHmmss).log"
 $AppListPath = Join-Path $ProjectRoot "Lists\ApprovedRemoval-Apps.txt"
 $CapListPath = Join-Path $ProjectRoot "Lists\ApprovedRemoval-Capabilities.txt"

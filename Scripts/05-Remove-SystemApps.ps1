@@ -14,21 +14,28 @@
 #
 # Targets folders under: <Mount>\Windows\SystemApps\
 #
-# Prerequisite: WIM is currently mounted at $MountPath (by script 03).
+# Prerequisite: WIM is currently mounted at $MountPath by 04-Remove-ProvisionedApps.ps1
+# running WITH -Apply. Dry-run mode (no -Apply) never mounts anything, so if
+# you skipped straight to this script, or ran 04 without -Apply, there is
+# nothing mounted here yet - see the error below for exactly that check.
 # Run BEFORE 06-Remove-OneDrive.ps1 (logical ordering with other offline
 # file removals; both happen while WIM is mounted).
 #
 # Run as Administrator. Pass -Apply to execute (default: dry-run).
+# Default -MountPath comes from Scripts\BuildConfig.psd1.
 # =============================================================================
+#Requires -RunAsAdministrator
 
 [CmdletBinding()]
 param(
-    [switch]$Apply
+    [switch]$Apply,
+    [string]$MountPath
 )
 
-$MountPath   = "E:\WimMount"
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
-$LogPath     = Join-Path $ProjectRoot "Logs\03b-SystemComponents-$(Get-Date -Format yyyyMMdd-HHmmss).log"
+$Config      = Import-PowerShellDataFile -Path (Join-Path $PSScriptRoot 'BuildConfig.psd1')
+if (-not $MountPath) { $MountPath = $Config.MountPath }
+$LogPath     = Join-Path $ProjectRoot "Logs\RemoveSystemApps-$(Get-Date -Format yyyyMMdd-HHmmss).log"
 
 function Write-Log {
     param([string]$Message, [string]$Level = 'INFO')
@@ -47,10 +54,13 @@ New-Item -ItemType Directory -Path (Split-Path $LogPath) -Force | Out-Null
 
 # ----- Guard: WIM must be mounted -----
 if (-not (Test-Path $MountPath)) {
-    throw "Mount path does not exist: $MountPath. Run 04-Remove-ProvisionedApps.ps1 first."
+    throw "Mount path does not exist: $MountPath. Run 04-Remove-ProvisionedApps.ps1 -Apply first."
 }
 if (-not (Test-Path "$MountPath\Windows\System32")) {
-    throw "Mount path does not look like a Windows image (missing System32)."
+    throw "Mount path exists but contains no Windows image (missing Windows\System32) at $MountPath. " +
+          "Most likely cause: 04-Remove-ProvisionedApps.ps1 was run WITHOUT -Apply (dry-run doesn't " +
+          "mount anything), or the image was already dismounted (e.g. 09-Dismount-Image.ps1 already ran). " +
+          "Check current mounts with: Get-WindowsImage -Mounted"
 }
 
 $mountedHere = Get-WindowsImage -Mounted -ErrorAction SilentlyContinue |

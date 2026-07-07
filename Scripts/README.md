@@ -11,6 +11,32 @@ them into the main sequence (as `03a-`, `03b-` in an earlier version of this
 pipeline) implied an ordering dependency that didn't exist and obscured which
 scripts actually mutate state.
 
+## Run as Administrator
+
+Every script in this suite requires an elevated PowerShell session -
+`Mount-WindowsImage`, `Get-WindowsImage -Mounted`, DISM operations, and
+folder creation under drive roots all need it. Scripts enforce this with
+`#Requires -RunAsAdministrator` at the top: run one from a non-elevated
+prompt and PowerShell refuses to start it with a clear error, instead of
+failing partway through with a confusing access-denied exception.
+
+## Configuration: `BuildConfig.psd1`
+
+ISO path, mount point, WIM index, ADK location, and build-server root are
+defined once in `BuildConfig.psd1`, not copy-pasted as literals into every
+script. Every script exposes the same values as parameters that override the
+config default for a single run without editing the file:
+
+```powershell
+.\04-Remove-ProvisionedApps.ps1 -MountPath 'D:\Mount' -Apply
+```
+
+Edit `BuildConfig.psd1` when your ISO filename, drive letters, or WIM index
+change permanently. This also means every script agrees on the mount path by
+construction — they all read the same file, instead of each hardcoding
+`E:\WimMount` independently and risking one getting edited without the
+others.
+
 | # | File | Purpose | Mutates state | Run frequency |
 |---|---|---|---|---|
 | 01 | `01-Unblock-Scripts.ps1` | Strip MOTW, check exec policy, prep runtime folders | No | Once per ZIP extraction |
@@ -65,6 +91,9 @@ mounted by script 04; script 09 commits the combined result.
 
 ## Recovery commands (manual)
 
+Replace `E:\WimMount` below with your actual `MountPath` from
+`BuildConfig.psd1` if you've overridden the default.
+
 ```powershell
 # Check what's mounted
 Get-WindowsImage -Mounted
@@ -79,7 +108,7 @@ Dismount-WindowsImage -Path E:\WimMount -Discard
 Clear-WindowsCorruptMountPoint
 
 # Strip MOTW from a single file
-Unblock-File -Path 'E:\Build\Scripts\04-Remove-ProvisionedApps.ps1'
+Unblock-File -Path '.\04-Remove-ProvisionedApps.ps1'
 
 # Change execution policy for current user
 Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned

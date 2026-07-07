@@ -42,16 +42,24 @@
 
 [CmdletBinding()]
 param(
-    [switch]$Apply
+    [switch]$Apply,
+    [string]$MountPath,
+    [string]$IsoExtractDir
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 # --- Configuration ---
-$Win11Version  = '25H2'
-$ISOExtractDir = "E:\ISO\Win11_${Win11Version}_7"
-$BuildRoot     = 'E:\Build'
+# BuildRoot is the actual folder this repo lives in - NOT a hardcoded 'E:\Build'.
+# That hardcoded value broke on any checkout that isn't literally at E:\Build
+# (e.g. E:\Modern-Windows-Image-Factory) - BrandingSrc/OEMTemplateSrc/DriversSrc
+# below would silently point at a folder that doesn't exist.
+$BuildRoot     = Split-Path -Parent $PSScriptRoot
+$Config        = Import-PowerShellDataFile -Path (Join-Path $PSScriptRoot 'BuildConfig.psd1')
+$Win11Version  = $Config.Win11Version
+if (-not $IsoExtractDir) { $IsoExtractDir = $Config.ExtractDest }
+$ISOExtractDir = $IsoExtractDir
 $OEMRoot       = Join-Path $ISOExtractDir 'sources\$OEM$'
 
 $BrandingSrc    = Join-Path $BuildRoot 'Branding'
@@ -63,8 +71,8 @@ $WallpaperFile   = 'Wallpaper.jpg'
 $LockScreenFile  = 'LockScreen.jpg'
 $BrandingDestRel = 'Web\Wallpaper\CompanyBrand'   # under C:\Windows\
 
-# WIM mount path used by THIS build chain - check only this one
-$LocalWimMount = 'E:\WimMount'
+if (-not $MountPath) { $MountPath = $Config.MountPath }
+$LocalWimMount = $MountPath
 
 $LogDir    = Join-Path $BuildRoot 'Logs'
 $Timestamp = Get-Date -Format 'yyyyMMdd-HHmmss'

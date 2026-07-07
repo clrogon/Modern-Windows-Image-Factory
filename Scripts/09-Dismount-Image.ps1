@@ -4,20 +4,24 @@
 # Reference: WIN11-GOLDIMG-001, Section 3.1.3
 # Owner: IT Solutions Architecture
 #
-# Dismounts the mounted WIM and SAVES the changes (apps removed in script 03,
-# OneDrive removed in script 04). Separated into its own script so the
-# operator has a clear commit gate.
+# Dismounts the mounted WIM and SAVES the changes (apps removed in script 04,
+# SystemApps in 05, OneDrive in 06, NetFx3/associations in 07-08). Separated
+# into its own script so the operator has a clear commit gate.
 #
 # Run as Administrator. Pass -Apply to execute (default: dry-run).
+# Default -MountPath comes from Scripts\BuildConfig.psd1.
 # =============================================================================
+#Requires -RunAsAdministrator
 
 [CmdletBinding()]
 param(
-    [switch]$Apply
+    [switch]$Apply,
+    [string]$MountPath
 )
 
-$MountPath   = "E:\WimMount"
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
+$Config      = Import-PowerShellDataFile -Path (Join-Path $PSScriptRoot 'BuildConfig.psd1')
+if (-not $MountPath) { $MountPath = $Config.MountPath }
 $LogPath     = Join-Path $ProjectRoot "Logs\DismountImage-$(Get-Date -Format yyyyMMdd-HHmmss).log"
 
 function Write-Log {

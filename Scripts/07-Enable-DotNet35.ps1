@@ -21,20 +21,24 @@
 
 [CmdletBinding()]
 param(
-    [switch]$Apply
+    [switch]$Apply,
+    [string]$MountPath,
+    [string]$SxSPath
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-# --- Configuration (match the rest of the build chain) ---
-$Win11Version = '25H2'
-$MountPath    = 'E:\WimMount'
-$SxSPath      = "E:\ISO\Win11_${Win11Version}_7\sources\sxs"
-$LogDir       = 'E:\Build\Logs'
+# --- Configuration ---
+$ProjectRoot  = Split-Path -Parent $PSScriptRoot
+$Config       = Import-PowerShellDataFile -Path (Join-Path $PSScriptRoot 'BuildConfig.psd1')
+$Win11Version = $Config.Win11Version
+if (-not $MountPath) { $MountPath = $Config.MountPath }
+if (-not $SxSPath)   { $SxSPath   = Join-Path $Config.ExtractDest 'sources\sxs' }
+$LogDir       = Join-Path $ProjectRoot 'Logs'
 $Timestamp    = Get-Date -Format 'yyyyMMdd-HHmmss'
 $Mode         = if ($Apply) { 'APPLY' } else { 'DRYRUN' }
-$LogFile      = Join-Path $LogDir "07-EnableDotNet35-$Mode-$Timestamp.log"
+$LogFile      = Join-Path $LogDir "EnableDotNet35-$Mode-$Timestamp.log"
 
 if (-not (Test-Path $LogDir)) { New-Item -Path $LogDir -ItemType Directory -Force | Out-Null }
 

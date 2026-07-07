@@ -10,18 +10,26 @@
 # (mounting the WIM, writing OEM folders, oscdimg packing).
 #
 # Run as Administrator. Pass -Apply to execute (default: dry-run).
+# Defaults for -IsoPath/-Destination come from Scripts\BuildConfig.psd1 -
+# override per-run instead of editing this file when your ISO changes.
 # =============================================================================
+#Requires -RunAsAdministrator
 
 [CmdletBinding()]
 param(
-    [switch]$Apply
+    [switch]$Apply,
+    [string]$IsoPath,
+    [string]$Destination
 )
 
-# --- Source and destination ---
-$ISOFile     = "E:\ISO\SW_DVD9_Win_Pro_11_25H2.7_64BIT_English_Pro_Ent_EDU_N_MLF_X24-30433.ISO"
-$Destination = "E:\ISO\Win11_25H2_7"
+# --- Load shared config, apply parameter overrides ---
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
-$LogPath     = Join-Path $ProjectRoot "Logs\ExtractIso-$(Get-Date -Format yyyyMMdd-HHmmss).log"
+$Config      = Import-PowerShellDataFile -Path (Join-Path $PSScriptRoot 'BuildConfig.psd1')
+
+if (-not $IsoPath)     { $IsoPath     = $Config.IsoSourcePath }
+if (-not $Destination) { $Destination = $Config.ExtractDest }
+$ISOFile = $IsoPath
+$LogPath = Join-Path $ProjectRoot "Logs\ExtractIso-$(Get-Date -Format yyyyMMdd-HHmmss).log"
 
 function Write-Log {
     param([string]$Message, [string]$Level = 'INFO')

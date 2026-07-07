@@ -9,8 +9,10 @@
 #
 # Run as Administrator. No $Apply flag - this script is read-only verification.
 # =============================================================================
+#Requires -RunAsAdministrator
 
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
+$Config      = Import-PowerShellDataFile -Path (Join-Path $PSScriptRoot 'BuildConfig.psd1')
 $LogPath     = Join-Path $ProjectRoot "Logs\02-Setup-$(Get-Date -Format yyyyMMdd-HHmmss).log"
 
 function Write-Log {
@@ -101,7 +103,9 @@ Write-Log ""
 Write-Log "Tool availability check:"
 
 # Windows ADK / oscdimg
-$adkCandidates = @(
+$adkCandidates = @()
+if ($Config.AdkOscdimgPath) { $adkCandidates += $Config.AdkOscdimgPath }
+$adkCandidates += @(
     "E:\Windows assessment and deployed kit\Assessment and Deployment Kit\Deployment Tools\amd64\Oscdimg\oscdimg.exe",
     "E:\Windows Assessment and Deployment Kit\Assessment and Deployment Kit\Deployment Tools\amd64\Oscdimg\oscdimg.exe",
     "${env:ProgramFiles(x86)}\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64\Oscdimg\oscdimg.exe",
@@ -113,7 +117,7 @@ foreach ($c in $adkCandidates) {
 }
 if ($oscdimg) {
     Write-Log "  OK:      ADK / oscdimg.exe -> $oscdimg" 'OK'
-    Write-Log "           Set this path as `$ADKPath in 11-Build-Iso.ps1"
+    Write-Log "           If non-standard, set AdkOscdimgPath in Scripts\BuildConfig.psd1"
 } else {
     Write-Log "  MISSING: oscdimg.exe - install Windows ADK (Deployment Tools feature)" 'ERROR'
     $missingMandatory = $true

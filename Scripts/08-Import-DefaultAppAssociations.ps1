@@ -10,7 +10,7 @@
     association (and any other overrides) into the image so new user profiles
     created from this build inherit it.
 
-    Runs AFTER script 04b (NetFx3) and BEFORE script 09 (dismount).
+    Runs AFTER script 07 (Enable-DotNet35) and BEFORE script 09 (dismount).
 
 .PARAMETER Apply
     Default $false (dry-run). Pass -Apply to execute.
@@ -26,19 +26,23 @@
 
 [CmdletBinding()]
 param(
-    [switch]$Apply
+    [switch]$Apply,
+    [string]$MountPath,
+    [string]$AssocXml
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 # --- Configuration ---
-$MountPath = 'E:\WimMount'
-$AssocXml  = 'E:\Build\OEM-Template\OEMDefaultAssociations-ORG.xml'
-$LogDir    = 'E:\Build\Logs'
-$Timestamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-$Mode      = if ($Apply) { 'APPLY' } else { 'DRYRUN' }
-$LogFile   = Join-Path $LogDir "ImportDefaultAppAssociations-$Mode-$Timestamp.log"
+$ProjectRoot = Split-Path -Parent $PSScriptRoot
+$Config      = Import-PowerShellDataFile -Path (Join-Path $PSScriptRoot 'BuildConfig.psd1')
+if (-not $MountPath) { $MountPath = $Config.MountPath }
+if (-not $AssocXml)  { $AssocXml  = Join-Path $ProjectRoot 'OEM-Template\OEMDefaultAssociations.xml' }
+$LogDir      = Join-Path $ProjectRoot 'Logs'
+$Timestamp   = Get-Date -Format 'yyyyMMdd-HHmmss'
+$Mode        = if ($Apply) { 'APPLY' } else { 'DRYRUN' }
+$LogFile     = Join-Path $LogDir "ImportDefaultAppAssociations-$Mode-$Timestamp.log"
 
 if (-not (Test-Path $LogDir)) { New-Item -Path $LogDir -ItemType Directory -Force | Out-Null }
 

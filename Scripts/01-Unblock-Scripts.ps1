@@ -16,7 +16,11 @@
 # a downloaded/copied ZIP archive.
 #
 # Run as Administrator. No $Apply flag - this script is read-mostly and safe.
+# This script WILL FAIL with an access-denied error if not run elevated -
+# Get-WindowsImage/mount-path checks and folder creation under system-managed
+# drive roots require admin rights.
 # =============================================================================
+#Requires -RunAsAdministrator
 
 $ProjectRoot = Split-Path -Parent $PSScriptRoot   # parent of \Scripts\
 $LogPath     = Join-Path $ProjectRoot "Logs\UnblockScripts-$(Get-Date -Format yyyyMMdd-HHmmss).log"

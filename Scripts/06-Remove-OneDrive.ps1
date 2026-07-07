@@ -12,19 +12,24 @@
 # Why: ORG corporate M365 OneDrive for Business is deployed separately;
 # leaving the OOBE version causes personal-account prompts and double-icons.
 #
-# Prerequisite: WIM is currently mounted at $MountPath (by script 03).
+# Prerequisite: WIM is currently mounted at $MountPath by 04-Remove-ProvisionedApps.ps1
+# running WITH -Apply.
 #
 # Run as Administrator. Pass -Apply to execute (default: dry-run).
+# Default -MountPath comes from Scripts\BuildConfig.psd1.
 # =============================================================================
+#Requires -RunAsAdministrator
 
 [CmdletBinding()]
 param(
-    [switch]$Apply
+    [switch]$Apply,
+    [string]$MountPath
 )
 
-$MountPath   = "E:\WimMount"
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
-$LogPath     = Join-Path $ProjectRoot "Logs\04-OneDriveRemoval-$(Get-Date -Format yyyyMMdd-HHmmss).log"
+$Config      = Import-PowerShellDataFile -Path (Join-Path $PSScriptRoot 'BuildConfig.psd1')
+if (-not $MountPath) { $MountPath = $Config.MountPath }
+$LogPath     = Join-Path $ProjectRoot "Logs\OneDriveRemoval-$(Get-Date -Format yyyyMMdd-HHmmss).log"
 
 function Write-Log {
     param([string]$Message, [string]$Level = 'INFO')
