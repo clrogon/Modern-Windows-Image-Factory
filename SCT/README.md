@@ -1,6 +1,8 @@
 # SCT\ — Microsoft Security Compliance Toolkit
 
-**Status:** EMPTY — populate before Phase 3.
+**Status:** EMPTY — populate before the reference-VM hardening step (Phase 2, see
+`ARCHITECTURE.md` §4). Consumed by `AuditMode\Apply-SecurityBaseline.ps1`,
+which is **not yet shipped** in this repo — see `ROADMAP.md` (Security, v2.6).
 
 ## What to download
 
@@ -21,4 +23,5 @@ SCT\
     └── Templates\
 ```
 
-Used in Phase 3.3.2 via `.\Baseline-LocalInstall.ps1 -Win11NonDomainJoined`.
+Used via `.\Baseline-LocalInstall.ps1 -Win11NonDomainJoined` on the reference VM
+(roadmap — see note above).

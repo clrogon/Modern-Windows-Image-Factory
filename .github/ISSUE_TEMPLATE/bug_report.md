@@ -1,11 +1,10 @@
 ---
-
 name: Bug Report
 about: Report a defect or unexpected behavior
 title: "[BUG]"
 labels: bug
 assignees: ''
--------------
+---
 
 ## Summary
 

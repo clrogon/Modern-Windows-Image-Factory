@@ -1,12 +1,12 @@
 # unattend\
 
-**Status:** TEMPLATES NEEDED — populate before Phase 3.4.3.
+**Status:** TEMPLATES NEEDED — populate before the reference-VM Sysprep step (Phase 2, see `ARCHITECTURE.md` §4).
 
 Two answer files used at different stages:
 
 | File | Used by | Stage |
 |---|---|---|
-| `unattend-reference.xml` | Sysprep on the reference machine | Phase 3.4.3 — Sysprep generalize |
+| `unattend-reference.xml` | Sysprep on the reference machine | Phase 2 (reference VM) — Sysprep `/generalize` step |
 | `unattend-deploy.xml` | MDT on target devices | Per ORG-IT-WIN11-DEP-001 |
 
 **Required elements for `unattend-reference.xml`:**

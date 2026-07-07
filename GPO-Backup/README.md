@@ -1,6 +1,7 @@
 # GPO-Backup\
 
-**Status:** EMPTY — populate before Phase 3.3.3.
+**Status:** EMPTY — populate before the reference-VM hardening step (Phase 2, see
+`ARCHITECTURE.md` §4), ahead of extracting to `LGPO\` text format.
 
 Backups of the two source ORG domain GPOs, taken via `Backup-GPO` from RSAT on a domain controller or jump host.
 

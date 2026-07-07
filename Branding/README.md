@@ -1,6 +1,8 @@
 # Branding\
 
-Static branding assets baked into the reference image at Phase 3.4.1.
+Static branding assets staged into the `$OEM$` tree by script `10`
+(`10-Build-OemLayer.ps1`, Phase 1 — build server) and applied to the desktop
+and lock screen at first boot by `SetupComplete.cmd` (see `ARCHITECTURE.md` §3).
 
 | File | Destination in image | Source GPO |
 |---|---|---|

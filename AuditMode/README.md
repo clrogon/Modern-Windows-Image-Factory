@@ -13,13 +13,20 @@ the custom ISO has been installed and BEFORE Sysprep + capture.
 This fills the gap between the ISO build (Scripts\ 01-11, build server)
 and the Sysprep/capture step.
 
+> **Status note:** `Apply-SecurityBaseline.ps1`, described throughout this
+> document, is **not yet shipped** in this repo — see `ROADMAP.md` (Security,
+> v2.6) and `ARCHITECTURE.md` §6 (Known gaps). The steps below describe the
+> target workflow once it lands. Until then, only `Apply-PostInstallCustomization.ps1`
+> actually exists in this folder, and the rest of the audit-mode flow (choosing
+> THIN/THICK, Sysprep, capture) works fine without it.
+
 ---
 
 ## Contents
 
 | File | Purpose | Run order |
 |---|---|---|
-| `Apply-SecurityBaseline.ps1` | Apply Microsoft Security Baseline + CIS L1 hardening (G1) | First |
+| `Apply-SecurityBaseline.ps1` | Apply Microsoft Security Baseline + CIS L1 hardening (G1) — **not yet shipped, see status note above** | First |
 | `Apply-PostInstallCustomization.ps1` | Re-apply G7 tasks if SetupComplete.cmd failed silently | Only if needed |
 | `README.md` | This file | n/a |
 
@@ -27,7 +34,8 @@ and the Sysprep/capture step.
 
 ## Delivery to the reference VM
 
-Script `10-Build-OemLayer.ps1` packs this folder into:
+Script `10-Build-OemLayer.ps1` packs this folder (only this folder — see note
+below) into:
 
 ```
 sources\$OEM$\$1\AuditMode\
@@ -38,19 +46,27 @@ so these files land at:
 
 ```
 C:\AuditMode\
-C:\AuditMode\Apply-SecurityBaseline.ps1
 C:\AuditMode\Apply-PostInstallCustomization.ps1
 C:\AuditMode\README.md
-C:\AuditMode\LGPO\LGPO.exe
-C:\AuditMode\LGPO\Machine-*.txt           (curated ORG overrides)
-C:\AuditMode\LGPO\User-*.txt              (curated ORG overrides)
-C:\AuditMode\SCT\<baseline folder>\       (Microsoft SCT extract)
 C:\AuditMode\Logs\                        (created at runtime)
 ```
+
+> **`LGPO\` and `SCT\` are top-level repo folders (siblings of `AuditMode\`,
+> not nested inside it — see the root README's folder structure), and script
+> `10` does not currently stage either of them into the `$OEM$` tree at all.**
+> The paths below (`AuditMode\LGPO\...`, `AuditMode\SCT\...`) describe the
+> target layout once `Apply-SecurityBaseline.ps1` ships and something stages
+> them under `C:\AuditMode\` on the reference VM — today, populate the
+> top-level `LGPO\README.md` and `SCT\README.md` folders as documented there,
+> and treat their delivery into the built ISO as part of the same
+> not-yet-shipped gap (`ROADMAP.md`, Security, v2.6).
 
 ---
 
 ## Required content before building the ISO
+
+*(Roadmap — see the status note above. Documents the target layout for once
+`Apply-SecurityBaseline.ps1` ships and stages these onto the reference VM.)*
 
 | Item | Where | Source |
 |---|---|---|
@@ -65,6 +81,9 @@ inside `AuditMode\SCT\`.
 ---
 
 ## Usage on the reference VM
+
+*(Steps 2, 3, and 5 depend on `Apply-SecurityBaseline.ps1`, which is roadmap —
+see the status note at the top of this document. Steps 1, 6, and 7 work today.)*
 
 ### Step 1 - Boot into audit mode
 After installing from the custom ISO, at the OOBE screen press
@@ -113,17 +132,17 @@ scenarios where you don't want to rebuild the ISO just to test a fix.
 
 ### Step 7 - Proceed to Sysprep
 Only after:
-- Hardening report shows all PASS
+- Hardening report shows all PASS (once `Apply-SecurityBaseline.ps1` ships — see status note; today, skip this gate)
 - Visual verification of branding (lock screen, wallpaper, OEM Info)
 
 ---
 
 ## Script comparison
 
-| Aspect | Apply-SecurityBaseline | Apply-PostInstallCustomization |
+| Aspect | Apply-SecurityBaseline (roadmap, not yet shipped) | Apply-PostInstallCustomization |
 |---|---|---|
 | Purpose | G1 compliance (SCT + CIS + VBS/HVCI/CG) | G7 re-apply (branding / OEM Info / CMTrace / region) |
-| Required for production builds | Yes | No (diagnostic only) |
+| Required for production builds | Yes, once shipped | No (diagnostic only) |
 | Modifies machine state | Yes (registry, GPO, LSA) | Yes (registry, Default user hive) |
 | Reboot required after | Yes (VBS/HVCI/CG activation) | No |
 | Produces compliance evidence | Yes (`HardeningReport-*.txt`) | No (re-applies SetupComplete tasks) |

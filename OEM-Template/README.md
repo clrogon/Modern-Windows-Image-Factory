@@ -1,8 +1,9 @@
 # OEM-Template\
 
 Source files that get packed into the install media's `sources\$OEM$\` folder
-during Phase 1.7. Windows Setup copies them to the target machine during install,
-without any Sysprep or post-install scripting.
+by scripts `10` and `11` (Phase 1 — build server, see `ARCHITECTURE.md` §2-3).
+Windows Setup copies them to the target machine during install, without any
+Sysprep or post-install scripting.
 
 ## Contents
 

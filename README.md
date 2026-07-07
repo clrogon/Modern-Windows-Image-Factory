@@ -134,7 +134,8 @@ find every spot in one pass - those four tokens cover essentially all of it.
 .
 ├── AuditMode/            # Reference-VM scripts: security baseline, software layer, Sysprep prep
 ├── Branding/             # Wallpaper/lock screen assets (empty - bring your own)
-├── Defaults/             # Default app associations / WiFi profile sourced from your domain
+├── Defaults/             # Default app associations / WiFi profile sourced from your domain (not yet wired into any script - see ARCHITECTURE.md)
+├── Drivers-SCCM/         # Not shipped - create and populate with your driver trees before running script 10
 ├── GPO-Backup/           # Where you drop `Backup-GPO` output before extracting to LGPO text
 ├── LGPO/                 # Local Group Policy text files applied on the reference VM
 ├── Lists/                # Approved-removal lists for AppX packages and Windows capabilities
