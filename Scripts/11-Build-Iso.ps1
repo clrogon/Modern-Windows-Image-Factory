@@ -127,6 +127,7 @@ Write-Log "install.wim found: $WimSizeGB GB" 'OK'
 
 # Check OEM folder exists
 $OEMRoot = Join-Path $ISOExtractDir 'sources\$OEM$'
+$OEMSize = 0
 if (Test-Path $OEMRoot) {
     $OEMFiles = (Get-ChildItem -Path $OEMRoot -Recurse -File | Measure-Object).Count
     $OEMSize = (Get-ChildItem -Path $OEMRoot -Recurse -File | Measure-Object Length -Sum).Sum
@@ -178,16 +179,21 @@ if (-not (Test-Path $AutounattendSrc)) {
     $XmlText = Get-Content -Path $AutounattendSrc -Raw
 
     # Check for the shipped default/placeholder password (safety net).
-    # Inspects ONLY the live <Password><Value> nodes via the parsed XML DOM -
-    # NOT a raw text/comment scan. The previous version did a whole-file
-    # string match, which meant the instructional comment near the top of
-    # Autounattend.xml (which legitimately quotes the placeholder as
-    # documentation, e.g. "The placeholder !ChangeMe2026! MUST be
+    # Inspects ONLY the live <Value> nodes under *Password elements via the
+    # parsed XML DOM - NOT a raw text/comment scan. The previous version did
+    # a whole-file string match, which meant the instructional comment near
+    # the top of Autounattend.xml (which legitimately quotes the placeholder
+    # as documentation, e.g. "The placeholder !ChangeMe2026! MUST be
     # substituted before...") permanently failed this check even after the
     # real <Value> fields were correctly substituted - forcing anyone who
     # keeps that comment as documentation to fail the build gate forever.
+    #
+    # Matches local-name() ending in "Password" (not just an exact "Password"
+    # match) - the unattend schema uses both <AdministratorPassword><Value>
+    # and <AutoLogon><Password><Value> for this same placeholder, and an
+    # exact-name match silently skips AdministratorPassword.
     $DefaultPasswordPlaceholders = @('!ChangeMe2026!', 'REPLACE_WITH_EPHEMERAL_PWD')
-    $PasswordValueNodes = $Doc.SelectNodes("//*[local-name()='Password']/*[local-name()='Value']")
+    $PasswordValueNodes = $Doc.SelectNodes("//*[substring(local-name(), string-length(local-name()) - string-length('Password') + 1) = 'Password']/*[local-name()='Value']")
     $FoundPlaceholder = $null
     foreach ($node in $PasswordValueNodes) {
         foreach ($placeholder in $DefaultPasswordPlaceholders) {
