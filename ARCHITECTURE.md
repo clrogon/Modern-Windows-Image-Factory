@@ -16,7 +16,7 @@ The build is split across two machines that never need to be the same box:
 - **Build server** (`Scripts/01-11`) — offline DISM servicing of `install.wim` plus an
   ISO repackage. No VM required, nothing here boots Windows.
 - **Reference VM** (`AuditMode/`) — boots the custom ISO into audit mode, applies the
-  security baseline (see [gaps](#4-known-gaps) below), optionally layers software, then
+  security baseline (see [gaps](#6-known-gaps) below), optionally layers software, then
   Sysprep + capture.
 
 ```mermaid
@@ -165,7 +165,7 @@ flowchart TD
 ```
 
 The dashed nodes are the documented-but-not-yet-shipped hardening step (`ROADMAP.md`,
-v2.6 Security section) — see [Known gaps](#4-known-gaps).
+v2.6 Security section) — see [Known gaps](#6-known-gaps).
 
 ## 5. Configuration inputs
 
@@ -175,7 +175,7 @@ Everything the pipeline consumes but doesn't ship pre-populated:
 |---|---|---|
 | `Lists/` | Script `04` (AppX + capability removal) | Shipped, curated |
 | `Branding/` | Script `10` (wallpaper/lock screen) | Empty — bring your own |
-| `Defaults/` | Script `08` (default app associations, WiFi profile) | Empty — sourced from your domain |
+| `Defaults/` | Not yet consumed by any script — checked for presence only, by script `03` | Empty — sourced from your domain, gap (see §6) |
 | `Drivers-SCCM/` | Script `10` (driver staging) | Not tracked — populate before building |
 | `GPO-Backup/`, `LGPO/`, `SCT/` | `AuditMode/` hardening baseline (roadmap) | Empty — populate from Microsoft SCT + your domain GPOs |
 | `OEM-Template/` | Scripts `10` and `11` (`SetupComplete.cmd`, `Autounattend.xml`) | Shipped with placeholders — replace before production |
@@ -196,6 +196,14 @@ Everything the pipeline consumes but doesn't ship pre-populated:
   `AuditMode/Software/README.md`). Forgetting it ships installer binaries and hardening
   scripts to every deployed endpoint. (`C:\Drivers` is no longer in this category —
   `SetupComplete.cmd` Task 6, v2.5+, removes it automatically after the PnP scan.)
+- **`Defaults/` (default-app associations, Wi-Fi profile) is not consumed by any script.**
+  `03-Initialize-BuildEnvironment.ps1` only checks whether the files are present and logs
+  an informational line — nothing in `Scripts/01`-`11` or `AuditMode/` copies them into the
+  image or applies the Wi-Fi profile. See `Defaults/README.md`.
+- **`LGPO/` and `SCT/` are not staged into the `$OEM$` tree.** Script `10` only robocopies
+  the `AuditMode/` folder itself to `$OEM$\$1\AuditMode` — the top-level `LGPO/` and `SCT/`
+  folders it documents as inputs are never packaged into the ISO. This is moot until
+  `Apply-SecurityBaseline.ps1` (which would consume them) ships — see the first gap above.
 
 ## 7. Where the diagrams live
 

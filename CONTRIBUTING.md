@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for contributing to Win11-Golden-Image-Builder.
+Thank you for contributing to Modern Windows Image Factory.
 
 ## Contribution Guidelines
 
