@@ -56,7 +56,7 @@ others.
 ## Run order (production)
 
 ```powershell
-Set-Location E:\Build\Scripts
+Set-Location <ProjectRoot>\Scripts
 
 # First-time setup
 .\01-Unblock-Scripts.ps1
