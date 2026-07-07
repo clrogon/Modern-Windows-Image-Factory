@@ -171,17 +171,39 @@ if (-not (Test-Path $AutounattendSrc)) {
         throw 'Autounattend.xml validation failed'
     }
 
-    # Check for the shipped default/placeholder password (safety net).
-    # Must match the actual placeholder in OEM-Template\Autounattend.xml (see its
-    # header comment and the root README's placeholder table) - not a made-up string.
+    # Raw text still used below for simple tag-presence checks (overlap
+    # detection) - fine there since those aren't security-sensitive and a
+    # false positive just means an extra informational log line, not a
+    # permanently-failing build gate.
     $XmlText = Get-Content -Path $AutounattendSrc -Raw
+
+    # Check for the shipped default/placeholder password (safety net).
+    # Inspects ONLY the live <Password><Value> nodes via the parsed XML DOM -
+    # NOT a raw text/comment scan. The previous version did a whole-file
+    # string match, which meant the instructional comment near the top of
+    # Autounattend.xml (which legitimately quotes the placeholder as
+    # documentation, e.g. "The placeholder !ChangeMe2026! MUST be
+    # substituted before...") permanently failed this check even after the
+    # real <Value> fields were correctly substituted - forcing anyone who
+    # keeps that comment as documentation to fail the build gate forever.
     $DefaultPasswordPlaceholders = @('!ChangeMe2026!', 'REPLACE_WITH_EPHEMERAL_PWD')
-    foreach ($placeholder in $DefaultPasswordPlaceholders) {
-        if ($XmlText -match [regex]::Escape($placeholder)) {
-            Write-Log "Autounattend.xml still contains the default placeholder password ($placeholder)" 'ERROR'
-            Write-Log 'Substitute a real ephemeral password before building.' 'ERROR'
-            exit 1
+    $PasswordValueNodes = $Doc.SelectNodes("//*[local-name()='Password']/*[local-name()='Value']")
+    $FoundPlaceholder = $null
+    foreach ($node in $PasswordValueNodes) {
+        foreach ($placeholder in $DefaultPasswordPlaceholders) {
+            if ($node.InnerText -eq $placeholder) {
+                $FoundPlaceholder = $placeholder
+                break
+            }
         }
+        if ($FoundPlaceholder) { break }
+    }
+    if ($FoundPlaceholder) {
+        Write-Log "Autounattend.xml still contains the default placeholder password in a live <Value> field ($FoundPlaceholder)" 'ERROR'
+        Write-Log 'Substitute a real ephemeral password before building.' 'ERROR'
+        exit 1
+    } else {
+        Write-Log "No default placeholder password in live <Value> fields ($($PasswordValueNodes.Count) checked)." 'OK'
     }
 
     # Detect overlap with SetupComplete.cmd (informational only)
