@@ -11,8 +11,9 @@ Two answer files used at different stages:
 
 **Required elements for `unattend-reference.xml`:**
 - OOBE skip pages (EULA, Region, Network)
-- Time zone: your target market's Windows time zone ID (example used in the scripts: `Eastern Standard Time`)
-- Input locale: your target market's locale (example used in the scripts: `en-US`)
+- Time zone: your target market's Windows time zone ID (used elsewhere in this repo:
+  `W. Central Africa Standard Time`, Angola)
+- Input locale: your target market's locale (used elsewhere in this repo: `pt-AO`)
 - System locale: `en-US`
 - `CopyProfile=true` to baseline the default user profile
 - `DoNotCleanTaskbar=true` to preserve curated taskbar layout

@@ -27,24 +27,28 @@
        ForceUpgrade="TRUE">
 
     <!--
-      OneDrive and Teams are EXCLUDED here on purpose. If left in, M365 Apps
-      installs the per-USER OneDrive/Teams clients (into each profile's AppData)
-      - the same clients removed in the offline build (script 04/G5).
-      ORG decision (real-world): these bundled clients caused repeated
-      deployment failures requiring manual uninstall/reinstall by the support
-      team. They are therefore NOT baked into the image (thin or thick). The
-      deployment team installs and manages OneDrive/Teams post-image
-      (Intune/GPO/managed install). These exclusions guarantee the M365 install
-      cannot silently re-add the per-user clients.
+      OneDrive and Teams are INTENTIONALLY INCLUDED here (not excluded).
+      The offline build (script 06) removes the pre-installed CONSUMER/inbox
+      OneDriveSetup.exe stub, and the Lists/ApprovedRemoval-Apps.txt removal
+      list strips the CONSUMER Teams personal app + legacy inbox MSTeams app -
+      those are the clients that caused repeated deployment failures
+      (personal-account prompts, stale tenant cache, double icons) and forced
+      manual uninstall/reinstall by the support team.
+      What ODT installs here is different: the ENTERPRISE OneDrive for
+      Business and Teams (work) clients, signed in to the ORG tenant, as part
+      of the same M365 Apps install as Word/Excel/etc. Excluding them from
+      ODT would just mean no OneDrive/Teams client at all until the
+      deployment team installs one separately - it would not prevent the
+      support-ticket-causing consumer clients, since those never came from
+      ODT in the first place. See script 06 and Lists/ApprovedRemoval-Apps.txt
+      for the offline side of this split.
     -->
     <Product ID="O365ProPlusRetail">
       <Language ID="en-us" />
       <ExcludeApp ID="Access" />
       <ExcludeApp ID="Groove" />
       <ExcludeApp ID="Lync" />
-      <ExcludeApp ID="OneDrive" />
       <ExcludeApp ID="Publisher" />
-      <ExcludeApp ID="Teams" />
     </Product>
 
   </Add>

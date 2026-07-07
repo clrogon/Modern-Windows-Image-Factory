@@ -20,6 +20,12 @@ REM    2. Desktop wallpaper (changeable default): overwrite img0.jpg + Default h
 REM    3. Lock screen (enforced): disable Spotlight, then PersonalizationCSP
 REM    4. OEM Information TEXT (no Logo - Win11 Settings does not render it)
 REM    5. Sanity checks
+REM    6. Remove C:\Drivers now that Task 1's PnP scan has bound whatever it found
+REM       (also removes any non-.inf passenger files that rode along - .exe/.cab/
+REM       .msi are not cleaned up by PnP and would otherwise sit on disk forever).
+REM       NOTE: this also removes DevicePath's ability to serve a driver to NEW
+REM       hardware attached later (e.g. a dock connected next month). If you need
+REM       that, drop this task and keep C:\Drivers.
 REM
 REM  ASCII only. No smart quotes, no em-dashes.
 REM =============================================================================
@@ -41,7 +47,7 @@ set "OEM_SUPPORTURL=https://contoso.sharepoint.com/sites/it/servicedesk"
 set "OEM_SUPPORTPROVIDER=ORG IT Service Desk"
 
 echo ============================================================= > "%LOG%"
-echo ORG SetupComplete.cmd v2.4 started : %DATE% %TIME%          >> "%LOG%"
+echo ORG SetupComplete.cmd v2.5 started : %DATE% %TIME%          >> "%LOG%"
 echo ============================================================= >> "%LOG%"
 
 REM =============================================================================
@@ -149,9 +155,25 @@ if exist "C:\Drivers" (
 
 tzutil /g >> "%LOG%" 2>&1
 
+REM =============================================================================
+REM  TASK 6 - Remove C:\Drivers now that PnP (Task 1) has bound whatever it found
+REM =============================================================================
+echo [TASK 6] Cleaning up C:\Drivers after PnP binding >> "%LOG%"
+
+if exist "C:\Drivers" (
+    rmdir /s /q "C:\Drivers" >> "%LOG%" 2>&1
+    if exist "C:\Drivers" (
+        echo [TASK 6] WARN - C:\Drivers still present after cleanup attempt >> "%LOG%"
+    ) else (
+        echo [TASK 6] C:\Drivers removed OK >> "%LOG%"
+    )
+) else (
+    echo [TASK 6] C:\Drivers not present, nothing to clean up >> "%LOG%"
+)
+
 echo. >> "%LOG%"
 echo ============================================================= >> "%LOG%"
-echo ORG SetupComplete.cmd v2.4 finished : %DATE% %TIME%         >> "%LOG%"
+echo ORG SetupComplete.cmd v2.5 finished : %DATE% %TIME%         >> "%LOG%"
 echo ============================================================= >> "%LOG%"
 
 endlocal

@@ -38,8 +38,8 @@
       3. Lock screen via PersonalizationCSP
       4. OEM Information
       5. CMTrace ProgID + .log association
-      6. Timezone (example default: Eastern Standard Time - change to your market)
-      7. Machine GeoID (example: United States = 244)
+      6. Timezone (target market: Angola - W. Central Africa Standard Time)
+      7. Machine GeoID (target market: Angola = 9)
       8. .NET Framework 3.5 (online, only if not already enabled)
 #>
 
@@ -52,11 +52,11 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-# --- Configuration ---
-$Timezone     = 'Eastern Standard Time'   # CHANGE ME: set to your target market's Windows time zone ID
-$GeoId        = 9
-$LocaleName   = 'en-US'                  # CHANGE ME: set to your target market's locale
-$GeoName      = 'AO'
+# --- Configuration (target market: Angola) ---
+$Timezone     = 'W. Central Africa Standard Time'   # Angola; change if deploying elsewhere
+$GeoId        = 9                                   # Angola
+$LocaleName   = 'pt-AO'                             # Portuguese (Angola); change if deploying elsewhere
+$GeoName      = 'AO'                                # Angola
 $BrandRoot    = 'C:\Windows\Web\Wallpaper\CompanyBrand'
 $WallpaperFile  = "$BrandRoot\Wallpaper.jpg"
 $LockScreenFile = "$BrandRoot\LockScreen.jpg"
