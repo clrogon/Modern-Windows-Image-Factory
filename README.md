@@ -123,6 +123,7 @@ here will silently apply your identity to someone else's fleet - you have to go 
 | Locale / timezone defaults | `AuditMode/Apply-PostInstallCustomization.ps1` | Set to `pt-AO` / `W. Central Africa Standard Time` (Angola) for this deployment - change `$LocaleName`/`$Timezone`/`$GeoId`/`$GeoName` if deploying elsewhere |
 | M365 config ID / product list | `AuditMode/Software/ODT/ODT_SemiAnnual.xml` | `ORG-M365-SemiAnnual` |
 | THICK software beyond M365/Adobe | `AuditMode/Software/Install-ImageSoftware.ps1` | commented `$AppDefinitions` template entry |
+| ISO path, mount point, WIM index, ADK location | `Scripts/BuildConfig.psd1` | `E:\ISO\...`, `E:\WimMount`, index `3` - every script in `Scripts/01`-`11` reads these as defaults, overridable per-run via parameters (`-MountPath`, `-WimPath`, etc.) |
 
 Grep for `ORG`, `CompanyBrand`, `yourcompany`, and `contoso.local` across the repo if you want to
 find every spot in one pass - those four tokens cover essentially all of it.
