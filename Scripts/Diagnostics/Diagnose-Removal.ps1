@@ -87,7 +87,7 @@ Write-Both ""
 # ----- Section 3: What provisioned AppX packages remain in the offline image? -----
 Write-Both "SECTION 3: Provisioned AppX still present in offline image"
 Write-Both "----------------------------------------------------------"
-Write-Both "(After script 03 ran, these should NOT include items from the list)"
+Write-Both "(After script 04 ran, these should NOT include items from the list)"
 Write-Both ""
 $still = Get-AppxProvisionedPackage -Path $MountPath | Sort-Object DisplayName
 Write-Both "Count: $($still.Count)"

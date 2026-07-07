@@ -1,3 +1,45 @@
+## v2.5.1 - Reference consistency patch
+
+Documentation/reference correctness only. **No functional, behavioural, or logic changes** — every
+edit is inside a comment, log-banner string, or a cross-reference pointer. The build sequence,
+parameters, and safety conventions (`-Apply` dry-run default) are untouched.
+
+### Why this exists
+
+The scripts were renamed to the sequential `01-` → `11-` convention several releases ago, but a
+large amount of their *internal* metadata still pointed at the old `00`/`01`/`03a`/`03b`/`04b`/`04c`
+scheme. Because old numbers now map to *different* files, several of these weren't merely stale —
+they were actively wrong. Example: `04-Remove-ProvisionedApps.ps1` told the reader that "script 04
+(OneDrive removal)" runs next, but script 04 is now that file itself; OneDrive removal is script 06.
+Anyone following the pipeline step-by-step from the comments would be misdirected.
+
+### Fixed
+
+- Migrated every stale script-number reference to current numbering across all 11 build scripts and
+  both diagnostics: file-header titles, `========== NN ... ==========` log banners, `Phase NN`
+  summary strings, and backward "run script NN first" cross-references. Forward "Next: run NN-…"
+  pointers were already correct and were left as-is.
+- `Scripts/Diagnostics/Diagnose-AppxAndCapabilities.ps1`: header no longer labels itself `03a`
+  (diagnostics are deliberately outside the numbered sequence — now labelled `Diagnostic:`).
+- `OEM-Template/OEMDefaultAssociations.xml`: the inline DISM example referenced a non-existent file
+  (`OEMDefaultAssociations-ORG.xml`) and the retired `04c` script number — corrected to the real
+  filename and `script 08`.
+- `OEM-Template/Autounattend.xml`: step references `03b`/`04b`/`04c` → `05`/`07`/`08`.
+- OEM Support-provider placeholder unified: `Apply-PostInstallCustomization.ps1` used
+  `'Your Organization IT Service Desk'` while `Fix-CurrentVM.ps1` used `'ORG IT Service Desk'`.
+  Both now use the repo-canonical `ORG` token, so the documented "grep for `ORG`" customization
+  sweep catches it.
+
+### Explicitly NOT in this release
+
+- `AuditMode/Apply-SecurityBaseline.ps1` is **still not shipped**. All CIS / VBS / HVCI / Credential
+  Guard hardening referenced in `AuditMode/README.md` remains roadmap-only — see `ROADMAP.md`
+  (Security, v2.6). Nothing here changes that status.
+- Per-script internal doc-control stamps (`WIN11-GOLDIMG-001 v2.3`/`v2.4` etc.) were left untouched;
+  they track document revisions, not the repo release version.
+
+---
+
 ## v2.4 - Closing notes for the v2.x image line
 
 > **Naming note:** this entry predates the script rename to the `01-` → `11-` sequential,

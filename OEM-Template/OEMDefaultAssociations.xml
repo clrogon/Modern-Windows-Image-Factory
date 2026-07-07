@@ -8,8 +8,8 @@
                   dism /online /Export-DefaultAppAssociations
   ORG override : .log -> CMTrace.LogFile (Configuration Manager Trace Log)
 
-  Apply during build (offline servicing - script 04c):
-    dism /Image:E:\WimMount /Import-DefaultAppAssociations:E:\Build\OEM-Template\OEMDefaultAssociations-ORG.xml
+  Apply during build (offline servicing - script 08):
+    dism /Image:E:\WimMount /Import-DefaultAppAssociations:E:\Build\OEM-Template\OEMDefaultAssociations.xml
 -->
 <DefaultAssociations>
   <Association Identifier=".3fr" ProgId="AppX9rkaq77s0jzh1tyccadx9ghba15r6t3h" ApplicationName="Photos" OverwriteOnVersionMax="54" OverwriteIfProgIdIs="AppX43hnxtbyyps62jhe9sqpdzxn1790zetc" />

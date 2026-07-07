@@ -1,5 +1,5 @@
 # =============================================================================
-# Windows 11 Image Build - Script 00: Unblock Scripts and Prepare
+# Windows 11 Image Build - Script 01: Unblock Scripts and Prepare
 # -----------------------------------------------------------------------------
 # Reference: WIN11-GOLDIMG-001
 # Owner: IT Solutions Architecture
@@ -116,7 +116,7 @@ if ($thisMount) {
     Write-Log "An image is currently mounted at $mountPath" 'WARN'
     Write-Log "  ImagePath: $($thisMount.ImagePath)"
     Write-Log "  Status:    $($thisMount.MountStatus)"
-    Write-Log "  This will block Phase 03 (Offline Servicing). Resolve before continuing." 'WARN'
+    Write-Log "  This will block Phase 04 (Offline Servicing). Resolve before continuing." 'WARN'
     Write-Log "  To save and clear:" 'INFO'
     Write-Log "    Dismount-WindowsImage -Path $mountPath -Save" 'INFO'
     Write-Log "  To discard changes and clear:" 'INFO'

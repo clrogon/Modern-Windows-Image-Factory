@@ -7,7 +7,7 @@
 .DESCRIPTION
     Enables NetFx3 feature in the offline-mounted install.wim using DISM,
     sourced from the extracted ISO's sources\sxs folder.
-    Runs AFTER script 04 (OneDrive removal) and BEFORE script 09 (dismount).
+    Runs AFTER script 06 (OneDrive removal) and BEFORE script 09 (dismount).
 
 .PARAMETER Apply
     Default $false (dry-run). Pass -Apply to execute.
@@ -55,7 +55,7 @@ function Write-Log {
     }
 }
 
-Write-Log '========== 04b - Enable .NET Framework 3.5 (offline) =========='
+Write-Log '========== 07 - Enable .NET Framework 3.5 (offline) =========='
 Write-Log "Mode:      $Mode"
 Write-Log "MountPath: $MountPath"
 Write-Log "SxSPath:   $SxSPath"
@@ -64,7 +64,7 @@ Write-Log "SxSPath:   $SxSPath"
 try {
     $Mounted = Get-WindowsImage -Mounted | Where-Object { $_.Path -eq $MountPath }
     if (-not $Mounted) {
-        Write-Log "WIM not mounted at $MountPath. Run script 03 first." 'ERROR'
+        Write-Log "WIM not mounted at $MountPath. Run script 04 first." 'ERROR'
         exit 1
     }
     Write-Log "WIM mounted at $MountPath (status: $($Mounted.MountStatus))" 'OK'
@@ -75,7 +75,7 @@ try {
 
 if (-not (Test-Path $SxSPath)) {
     Write-Log "sxs folder not found at: $SxSPath" 'ERROR'
-    Write-Log 'NetFx3 payload cannot be sourced. Verify script 01 (ExtractISO) completed.' 'ERROR'
+    Write-Log 'NetFx3 payload cannot be sourced. Verify script 02 (ExtractISO) completed.' 'ERROR'
     exit 1
 }
 Write-Log "sxs source verified: $SxSPath" 'OK'
@@ -122,7 +122,7 @@ if ($Apply) {
     Write-Log "  dism.exe /Image:$MountPath /Enable-Feature /FeatureName:NetFx3 /All /LimitAccess /Source:$SxSPath"
 }
 
-Write-Log '========== 04b complete =========='
+Write-Log '========== 07 complete =========='
 
 if (-not $Apply) {
     Write-Log ''

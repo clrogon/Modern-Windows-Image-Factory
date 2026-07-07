@@ -239,7 +239,7 @@ function Set-OEMInformation {
         Model           = 'ORG Corporate Workstation'
         SupportPhone    = '<SERVICE_DESK_PHONE>'
         SupportHours    = '<SERVICE_DESK_HOURS>'
-        SupportProvider = 'Your Organization IT Service Desk'
+        SupportProvider = 'ORG IT Service Desk'
         SupportURL      = 'https://contoso.sharepoint.com/sites/it/servicedesk'
     }
     if ($Apply) {

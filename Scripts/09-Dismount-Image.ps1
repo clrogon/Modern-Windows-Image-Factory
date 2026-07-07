@@ -1,5 +1,5 @@
 # =============================================================================
-# Windows 11 Image Build - Script 05: Dismount and Commit WIM
+# Windows 11 Image Build - Script 09: Dismount and Commit WIM
 # -----------------------------------------------------------------------------
 # Reference: WIN11-GOLDIMG-001, Section 3.1.3
 # Owner: IT Solutions Architecture
@@ -44,7 +44,7 @@ $mountedHere = Get-WindowsImage -Mounted -ErrorAction SilentlyContinue |
 
 if (-not $mountedHere) {
     Write-Log "No image is mounted at $MountPath" 'WARN'
-    Write-Log "Nothing to dismount. Confirm scripts 03 and 04 actually ran with `$Apply = `$true."
+    Write-Log "Nothing to dismount. Confirm scripts 04-08 actually ran with `$Apply = `$true."
     return
 }
 
@@ -76,7 +76,7 @@ if ($Apply) {
 
 Write-Log ""
 Write-Log "===================================="
-Write-Log "Phase 05 complete." 'OK'
+Write-Log "Phase 09 complete." 'OK'
 Write-Log "Next: run 10-Build-OemLayer.ps1" 'NEXT'
 Write-Log "Then: 11-Build-Iso.ps1 (repackage bootable ISO)"
 Write-Log "===================================="

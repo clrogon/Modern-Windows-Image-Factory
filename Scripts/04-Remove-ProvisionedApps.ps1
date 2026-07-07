@@ -1,5 +1,5 @@
 # =============================================================================
-# Windows 11 Image Build - Script 03: Offline DISM Servicing
+# Windows 11 Image Build - Script 04: Offline DISM Servicing
 # -----------------------------------------------------------------------------
 # Reference: WIN11-GOLDIMG-001, Section 3.4
 # Owner: IT Solutions Architecture
@@ -7,8 +7,8 @@
 # Removes provisioned apps and Windows capabilities from install.wim BEFORE
 # first boot. Driven by controlled lists in <ProjectRoot>\Lists\.
 #
-# Mounts the WIM and LEAVES IT MOUNTED so script 04 (OneDrive removal) can
-# operate on the offline image. Script 05 handles dismount.
+# Mounts the WIM and LEAVES IT MOUNTED so script 06 (OneDrive removal) can
+# operate on the offline image. Script 09 handles dismount.
 #
 # v2.2 changes (vs prior versions):
 #   - Apps: wildcard match preserved, but EVERY list entry is reported as
@@ -246,7 +246,7 @@ foreach ($wanted in $CapabilitiesToRemove) {
 # ----- Summary -----
 Write-Log ""
 Write-Log "===================================="
-Write-Log "Phase 03 Summary" 'OK'
+Write-Log "Phase 04 Summary" 'OK'
 Write-Log "------------------------------------"
 Write-Log "Apps        Matched: $($appStats.Matched)  Removed: $($appStats.Removed)  Failed: $($appStats.Failed)  Unmatched list entries: $($appStats.Unmatched.Count)"
 Write-Log "Capabilities Matched: $($capStats.Matched)  Removed: $($capStats.Removed)  Skipped (already absent): $($capStats.Skipped)  Failed: $($capStats.Failed)  Unmatched list entries: $($capStats.Unmatched.Count)"

@@ -1,5 +1,5 @@
 # =============================================================================
-# Windows 11 Image Build - Script 02: Setup Build Environment
+# Windows 11 Image Build - Script 03: Setup Build Environment
 # -----------------------------------------------------------------------------
 # Reference: WIN11-GOLDIMG-001
 # Owner: IT Solutions Architecture

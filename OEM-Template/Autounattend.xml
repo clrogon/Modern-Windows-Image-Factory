@@ -20,11 +20,11 @@ WHAT THIS FILE DOES
 WHAT THIS FILE DOES NOT DO (by design, no duplication of build chain)
 * AppX provisioned package removal       : script 03
 * Windows capability removal             : script 03
-* SystemApp folder removal               : script 03b
+* SystemApp folder removal               : script 05
 * OneDriveSetup removal                  : script 04
 * Reinstall suppression registry keys    : script 04
-* .NET Framework 3.5 enablement          : script 04b
-* OEMDefaultAssociations import          : script 04c
+* .NET Framework 3.5 enablement          : script 07
+* OEMDefaultAssociations import          : script 08
 * Branding (wallpaper, lockscreen, OEM)  : SetupComplete.cmd (Tasks 2-4)
 * DevicePath, pnputil scan               : SetupComplete.cmd (Task 1)
 * Timezone, Locale, GeoID                : AuditMode\Apply-PostInstallCustomization.ps1

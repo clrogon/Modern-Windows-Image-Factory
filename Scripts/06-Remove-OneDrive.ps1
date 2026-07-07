@@ -1,5 +1,5 @@
 # =============================================================================
-# Windows 11 Image Build - Script 04: Offline OneDriveSetup Removal
+# Windows 11 Image Build - Script 06: Offline OneDriveSetup Removal
 # -----------------------------------------------------------------------------
 # Reference: WIN11-GOLDIMG-001, Section 3.1.3
 # Owner: IT Solutions Architecture
@@ -245,7 +245,7 @@ if (Test-Path $offlineSoftwareHive) {
 if ($Apply) {
     Write-Log ""
     Write-Log "===================================="
-    Write-Log "Phase 04 complete. WIM still mounted at $MountPath" 'OK'
+    Write-Log "Phase 06 complete. WIM still mounted at $MountPath" 'OK'
     Write-Log "Next: run 07-Enable-DotNet35.ps1" 'NEXT'
     Write-Log "===================================="
 } else {

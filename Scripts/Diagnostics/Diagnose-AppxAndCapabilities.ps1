@@ -1,5 +1,5 @@
 # =============================================================================
-# Windows 11 Image Build - Script 03a: DIAGNOSE provisioned apps + capabilities
+# Windows 11 Image Build - Diagnostic: DIAGNOSE provisioned apps + capabilities
 # -----------------------------------------------------------------------------
 # Reference: WIN11-GOLDIMG-001, Appendix D troubleshooting
 #

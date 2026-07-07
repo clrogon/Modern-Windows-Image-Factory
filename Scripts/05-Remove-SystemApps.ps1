@@ -1,5 +1,5 @@
 # =============================================================================
-# Windows 11 Image Build - Script 03b: Offline System Component Removal
+# Windows 11 Image Build - Script 05: Offline System Component Removal
 # -----------------------------------------------------------------------------
 # Reference: WIN11-GOLDIMG-001, Section 3.4 (extension)
 # Owner: IT Solutions Architecture
@@ -142,7 +142,7 @@ foreach ($entry in $systemAppsToRemove) {
 # ----- Summary -----
 Write-Log ""
 Write-Log "===================================="
-Write-Log "Phase 03b Summary" 'OK'
+Write-Log "Phase 05 Summary" 'OK'
 Write-Log "------------------------------------"
 Write-Log "Targets in list:     $($systemAppsToRemove.Count)"
 Write-Log "Found in image:      $($stats.Found)"

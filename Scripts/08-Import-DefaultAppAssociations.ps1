@@ -59,7 +59,7 @@ function Write-Log {
     }
 }
 
-Write-Log '========== 04c - Import Default App Associations (offline) =========='
+Write-Log '========== 08 - Import Default App Associations (offline) =========='
 Write-Log "Mode:      $Mode"
 Write-Log "MountPath: $MountPath"
 Write-Log "AssocXml:  $AssocXml"
@@ -130,7 +130,7 @@ if ($Apply) {
     Write-Log "  dism.exe /Image:$MountPath /Import-DefaultAppAssociations:$AssocXml"
 }
 
-Write-Log '========== 04c complete =========='
+Write-Log '========== 08 complete =========='
 
 if (-not $Apply) {
     Write-Log ''

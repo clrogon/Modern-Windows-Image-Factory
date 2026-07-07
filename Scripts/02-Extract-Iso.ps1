@@ -1,5 +1,5 @@
 # =============================================================================
-# Windows 11 Image Build - Script 01: Extract ISO + Clear Read-Only
+# Windows 11 Image Build - Script 02: Extract ISO + Clear Read-Only
 # -----------------------------------------------------------------------------
 # Reference: WIN11-GOLDIMG-001, Section 3.1.1
 # Owner: IT Solutions Architecture
@@ -118,7 +118,7 @@ if ($Apply) {
         $sizeGB  = [math]::Round($wimItem.Length / 1GB, 2)
         Write-Log "install.wim present at $wim (Size: $sizeGB GB, IsReadOnly: $($wimItem.IsReadOnly))" 'OK'
         if ($wimItem.IsReadOnly) {
-            Write-Log "install.wim still read-only - Phase 03 will fail" 'ERROR'
+            Write-Log "install.wim still read-only - Phase 04 will fail" 'ERROR'
         }
     } else {
         Write-Log "install.wim NOT found at $wim" 'ERROR'
@@ -133,7 +133,7 @@ if ($Apply) {
 
     Write-Log ""
     Write-Log "===================================="
-    Write-Log "Phase 01 complete. Source: $Destination" 'OK'
+    Write-Log "Phase 02 complete. Source: $Destination" 'OK'
     Write-Log "Reminder: 04-Remove-ProvisionedApps.ps1 needs `$WimPath and `$Index set"
     Write-Log "  (use the Enterprise index from the edition list above)."
     Write-Log "Next: run 03-Initialize-BuildEnvironment.ps1" 'NEXT'

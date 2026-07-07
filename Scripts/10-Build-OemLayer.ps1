@@ -94,7 +94,7 @@ function Write-Log {
     }
 }
 
-Write-Log '========== 06 - Build OEM Folder Structure (v2.4) =========='
+Write-Log '========== 10 - Build OEM Folder Structure (v2.4) =========='
 Write-Log "Mode:           $Mode"
 Write-Log "ISO extract:    $ISOExtractDir"
 Write-Log "OEM root:       $OEMRoot"
@@ -106,7 +106,7 @@ Write-Log "AuditMode src:  $AuditModeSrc"
 # --- Pre-flight ---
 if (-not (Test-Path $ISOExtractDir)) {
     Write-Log "ISO extract dir not found: $ISOExtractDir" 'ERROR'
-    Write-Log 'Run script 01 (ExtractISO) first.' 'ERROR'
+    Write-Log 'Run script 02 (ExtractISO) first.' 'ERROR'
     exit 1
 }
 
@@ -392,7 +392,7 @@ if ($Apply) {
 }
 
 Write-Log ''
-Write-Log '========== 06 complete =========='
+Write-Log '========== 10 complete =========='
 if (-not $Apply) {
     Write-Log ''
     Write-Log '*** DRY-RUN. Re-run with -Apply to execute. ***' 'WARN'

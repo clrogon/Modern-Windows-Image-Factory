@@ -94,7 +94,7 @@ function Write-Log {
     }
 }
 
-Write-Log '========== 07 - Rebuild ISO (v2.3.2) =========='
+Write-Log '========== 11 - Rebuild ISO (v2.3.2) =========='
 Write-Log "Mode:           $Mode"
 Write-Log "ISO extract:    $ISOExtractDir"
 Write-Log "Output ISO:     $ISOOutput"
@@ -364,7 +364,7 @@ Verify on receiving end:
 }
 
 Write-Log ''
-Write-Log '========== 07 complete =========='
+Write-Log '========== 11 complete =========='
 if (-not $Apply) {
     Write-Log ''
     Write-Log '*** DRY-RUN. Re-run with -Apply to execute. ***' 'WARN'
