@@ -1,8 +1,9 @@
 # SCT\ — Microsoft Security Compliance Toolkit
 
 **Status:** EMPTY — populate before the reference-VM hardening step (Phase 2, see
-`ARCHITECTURE.md` §4). Consumed by `AuditMode\Apply-SecurityBaseline.ps1`,
-which is **not yet shipped** in this repo — see `ROADMAP.md` (Security, v2.6).
+`ARCHITECTURE.md` §4). Consumed by `AuditMode\Apply-SecurityBaseline.ps1` (v2.6).
+Staged into the built ISO automatically by `10-Build-OemLayer.ps1` (Step 7b) once
+populated — see `AuditMode/README.md`.
 
 ## What to download
 
@@ -23,5 +24,8 @@ SCT\
     └── Templates\
 ```
 
-Used via `.\Baseline-LocalInstall.ps1 -Win11NonDomainJoined` on the reference VM
-(roadmap — see note above).
+`AuditMode\Apply-SecurityBaseline.ps1` (v2.6) does not invoke `Baseline-LocalInstall.ps1`
+directly - it applies the curated `LGPO\*-image-baseline.txt` files (see `LGPO/README.md`)
+via `LGPO.exe`. `Baseline-LocalInstall.ps1` is left here as the source Microsoft ships the
+baseline `.txt`/`.pol` content in, and is useful to run by hand if you want the full,
+uncurated SCT baseline rather than the curated `-image-baseline.txt` subset.

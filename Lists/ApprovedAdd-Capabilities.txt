@@ -1,0 +1,20 @@
+# ORG IT Architecture — Approved Windows Capabilities Addition List (Features on Demand)
+# Used by Scripts\14-Add-FeaturesOnDemand.ps1
+# Format: One Capability Name (with version tail) per line
+# Lines starting with # are comments and ignored by the build script
+# Last reviewed: <YYYY-MM-DD>
+#
+# CHANGE CONTROL: Modification of this list requires RFC and IT Architecture approval.
+#
+# Opposite direction of Lists\ApprovedRemoval-Capabilities.txt: these are
+# Features on Demand to ADD to the image (offline), not remove. Requires a
+# local FOD source - see Scripts\14-Add-FeaturesOnDemand.ps1 -FodSourcePath.
+# Capability names are versioned and can drift between Windows builds - like
+# Lists\ApprovedRemoval-Capabilities.txt, entries here are resolved against
+# the mounted image with prefix matching (up to the version tilde) before
+# being passed to Add-WindowsCapability, so you don't have to keep this file
+# in lockstep with every Windows build's exact version suffix.
+#
+# Example entries (uncomment / replace with what your fleet actually needs):
+#OpenSSH.Server~~~~0.0.1.0
+#Language.OCR~~pt-AO~0.0.1.0

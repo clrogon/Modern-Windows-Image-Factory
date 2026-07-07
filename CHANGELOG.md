@@ -1,3 +1,75 @@
+## v2.6 - Security baseline, image engineering automation, CI/release pipeline
+
+Delivers every item tracked under "Version 2.6" in `ROADMAP.md` (now moved there to
+"Delivered" - see that file). Three areas:
+
+### Security
+
+- **`AuditMode/Apply-SecurityBaseline.ps1` ships.** This was the long-documented gap
+  (`ARCHITECTURE.md` Known gaps, referenced throughout `AuditMode/README.md` since v2.4) -
+  every hardening claim in prior release notes was explicitly roadmap-only until now. Three
+  layers, each independently toggleable via `-SkipTasks`:
+  - Microsoft Security Compliance Toolkit baseline application via `LGPO.exe`, if `LGPO/` and
+    `SCT/` have been populated (they're still operator-populated and empty by default - this
+    warns and continues rather than failing if they haven't been).
+  - A curated CIS-Benchmark-aligned registry hardening subset: SMBv1 disabled, LLMNR disabled,
+    AutoRun/AutoPlay disabled, UAC Admin Approval Mode, guest account disabled, anonymous
+    SAM/share enumeration restricted, WDigest plaintext credential caching disabled, LSA
+    Protection (RunAsPPL), PowerShell Script Block Logging, SmartScreen (Block mode), legacy
+    TLS/SSL protocols disabled, and a minimum password length / lockout policy floor.
+  - VBS + Hypervisor-Enforced Code Integrity (memory integrity), Credential Guard, the full
+    current Microsoft Defender Attack Surface Reduction rule set (18 rules, GUIDs verified
+    against Microsoft Learn at write time), and a BitLocker *policy* baseline (registry only -
+    this script does not encrypt the reference VM itself; see its header for why).
+  - `-VerifyOnly` produces `HardeningReport-*.txt` with a `[PASS]`/`[FAIL]` per check, matching
+    the workflow `AuditMode/README.md` already documented.
+- Registry values for VBS/HVCI/Credential Guard and Defender ASR rule GUIDs were checked
+  against current Microsoft Learn documentation while writing this script, not reconstructed
+  from memory - see the script's own `.NOTES` for what was verified against what.
+- `10-Build-OemLayer.ps1` gained Step 7b: stages the top-level `LGPO/` and `SCT/` folders into
+  `$OEM$\$1\AuditMode\LGPO` and `\SCT` (previously documented as a gap - script 10 only staged
+  the `AuditMode/` folder itself), so `Apply-SecurityBaseline.ps1`'s default paths resolve on
+  the reference VM without a manual copy step.
+
+### Image Engineering
+
+Four new, independently-optional scripts. Each is self-contained (mounts `install.wim`,
+services it, dismounts `-Save` itself) rather than inserted into the existing `04`-`09` mount
+window, specifically to avoid renumbering any of scripts `01`-`11` - see each script's `.NOTES`
+and `CHANGELOG.md` v2.5.1 above for why stale/shifted script-number references are treated as a
+real bug class in this repo. Run order: after `09-Dismount-Image.ps1`, before
+`10-Build-OemLayer.ps1`.
+
+- `Scripts/12-Inject-Drivers.ps1` - offline `Add-WindowsDriver` injection for drivers that need
+  to be present in the image itself (typically storage/NIC) rather than staged for the
+  post-boot PnP scan script `10`/`SetupComplete.cmd` already do.
+- `Scripts/13-Add-LanguagePacks.ps1` - offline language pack CAB injection plus optional
+  `Set-SKUIntlDefaults` to make it the image default.
+- `Scripts/14-Add-FeaturesOnDemand.ps1` - offline `Add-WindowsCapability` from a local FOD
+  source, driven by a new `Lists/ApprovedAdd-Capabilities.txt` (the addition-direction mirror
+  of `Lists/ApprovedRemoval-Capabilities.txt`, same prefix-matching).
+- `Scripts/15-Restore-MicrosoftStore.ps1` - optional recovery path for when Microsoft Store was
+  stripped by a custom/inherited removal list against `Lists/README.md`'s own advice, or by a
+  third-party debloat pass before this pipeline touched the image.
+
+### Automation
+
+- **CI**: `.github/workflows/validate.yml` runs PSScriptAnalyzer (via a new
+  `PSScriptAnalyzerSettings.psd1`, with the repo's deliberate conventions - e.g. `Write-Host`
+  for colored logging - excluded with rationale, not just silenced) plus XML well-formedness and
+  a scoped placeholder-password leak check, on every push and PR. This repo had no CI before
+  v2.6 (`ARCHITECTURE.md` Known gaps).
+- **Release packaging**: `.github/workflows/release.yml`, triggered on `v*.*.*` tag push, gates
+  on the same validation workflow, then packages a `git archive` of the tagged tree (tracked
+  files only) with a SHA256 manifest, and publishes a GitHub Release with the matching
+  `CHANGELOG.md` section as the release body.
+- Fixed the four real (non-false-positive) findings PSScriptAnalyzer surfaced against the
+  pre-v2.6 codebase before adding the CI gate: two unused variables (`05-Remove-SystemApps.ps1`,
+  `07-Enable-DotNet35.ps1`/`10-Build-OemLayer.ps1` both had a dead `$Win11Version`), so the new
+  gate starts green rather than immediately red on existing code.
+
+---
+
 ## v2.5.1 - Reference consistency patch
 
 Documentation/reference correctness only. **No functional, behavioural, or logic changes** — every

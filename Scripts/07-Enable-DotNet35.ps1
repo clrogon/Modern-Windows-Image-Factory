@@ -32,7 +32,6 @@ $ErrorActionPreference = 'Stop'
 # --- Configuration ---
 $ProjectRoot  = Split-Path -Parent $PSScriptRoot
 $Config       = Import-PowerShellDataFile -Path (Join-Path $PSScriptRoot 'BuildConfig.psd1')
-$Win11Version = $Config.Win11Version
 if (-not $MountPath) { $MountPath = $Config.MountPath }
 if (-not $SxSPath)   { $SxSPath   = Join-Path $Config.ExtractDest 'sources\sxs' }
 $LogDir       = Join-Path $ProjectRoot 'Logs'

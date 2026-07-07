@@ -52,6 +52,10 @@ others.
 | 11 | `11-Build-Iso.ps1` | Repackage bootable UEFI ISO + SHA256 manifest | Yes | Per build |
 | — | `Diagnostics\Diagnose-AppxAndCapabilities.ps1` | What's in the mounted image vs. what your removal list matches | No | When investigating removal issues |
 | — | `Diagnostics\Diagnose-Removal.ps1` | General diagnostic for removal investigation | No | When something's not right |
+| 12 | `12-Inject-Drivers.ps1` (optional, v2.6) | Offline `Add-WindowsDriver` injection for boot-critical drivers | Yes | Only if script 10's post-boot PnP staging isn't enough |
+| 13 | `13-Add-LanguagePacks.ps1` (optional, v2.6) | Offline language pack CAB injection, optional default-locale set | Yes | Only if you need a non-en-US image |
+| 14 | `14-Add-FeaturesOnDemand.ps1` (optional, v2.6) | Offline `Add-WindowsCapability` from a local FOD source | Yes | Only if you need a FOD not present by default |
+| 15 | `15-Restore-MicrosoftStore.ps1` (optional, v2.6) | Offline Microsoft Store restoration, from a locally staged export | Yes | Only if a removal list stripped Store and you want it back |
 
 ## Run order (production)
 
@@ -70,9 +74,29 @@ Set-Location <ProjectRoot>\Scripts
 .\07-Enable-DotNet35.ps1 -Apply                  # Offline DISM feature enable
 .\08-Import-DefaultAppAssociations.ps1 -Apply    # Offline DISM associations import
 .\09-Dismount-Image.ps1 -Apply                   # Commits all changes
+
+# Optional (v2.6), only if you need them - each mounts/services/dismounts
+# install.wim independently, so they can run in any order relative to each
+# other, but must run in this window (after 09, before 10):
+# .\12-Inject-Drivers.ps1 -Apply
+# .\13-Add-LanguagePacks.ps1 -LanguageTag <tag> -Apply
+# .\14-Add-FeaturesOnDemand.ps1 -FodSourcePath <path> -Apply
+# .\15-Restore-MicrosoftStore.ps1 -Apply
+
 .\10-Build-OemLayer.ps1 -Apply
 .\11-Build-Iso.ps1 -Apply
 ```
+
+## Scripts 12-15 (optional, v2.6)
+
+Unlike `04`-`09`, each of these performs its own independent
+mount/service/dismount cycle rather than sharing the `04`-`09` mount window -
+that's why they're numbered after `11` instead of inserted into the middle of
+the sequence (which would have meant renumbering every script from `05`
+onward - see the "Strict sequential" note at the top of this file, and
+`CHANGELOG.md` v2.5.1 for why that class of change is treated as a real bug
+risk in this repo, not a cosmetic one). Despite the higher numbers, they run
+positionally between `09` and `10` - see each script's own `.NOTES` header.
 
 ## Why three separate offline-removal scripts (04, 05, 06)?
 

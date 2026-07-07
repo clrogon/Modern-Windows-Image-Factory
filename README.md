@@ -92,6 +92,13 @@ Set-Location Scripts
 .\07-Enable-DotNet35.ps1 -Apply
 .\08-Import-DefaultAppAssociations.ps1 -Apply
 .\09-Dismount-Image.ps1 -Apply
+
+# Optional (v2.6) - drivers/language packs/FOD/Store, run before 10 if you need them:
+# .\12-Inject-Drivers.ps1 -Apply
+# .\13-Add-LanguagePacks.ps1 -LanguageTag <tag> -Apply
+# .\14-Add-FeaturesOnDemand.ps1 -FodSourcePath <path> -Apply
+# .\15-Restore-MicrosoftStore.ps1 -Apply
+
 .\10-Build-OemLayer.ps1 -Apply
 .\11-Build-Iso.ps1 -Apply
 ```
@@ -137,11 +144,13 @@ find every spot in one pass - those four tokens cover essentially all of it.
 ├── Defaults/             # Default app associations / WiFi profile sourced from your domain (not yet wired into any script - see ARCHITECTURE.md)
 ├── Drivers-SCCM/         # Not shipped - create and populate with your driver trees before running script 10
 ├── GPO-Backup/           # Where you drop `Backup-GPO` output before extracting to LGPO text
+├── LanguagePacks/        # Not shipped - optional, per-language-tag CABs for script 13 (v2.6)
 ├── LGPO/                 # Local Group Policy text files applied on the reference VM
-├── Lists/                # Approved-removal lists for AppX packages and Windows capabilities
+├── Lists/                # Approved-removal (and, since v2.6, approved-addition) lists
 ├── OEM-Template/         # $OEM$ tree: Autounattend.xml, SetupComplete.cmd, OEM info
 ├── SCT/                  # Drop the Microsoft Security Compliance Toolkit baseline here
-├── Scripts/              # 01-11 build-server pipeline + Diagnostics/ (see Scripts/README.md)
+├── Scripts/              # 01-11 build-server pipeline + 12-15 optional (v2.6) + Diagnostics/
+├── Software/             # Not shipped - optional, e.g. MicrosoftStore/ for script 15 (v2.6)
 └── unattend/             # Sysprep + MDT answer files (build with Windows SIM)
 ```
 
@@ -154,12 +163,13 @@ Every folder has its own `README.md` explaining what goes there and why.
 - Doesn't include an orchestrator script that runs 01->11 in one command by design - each phase
   should be reviewable/interruptible on a build server, and you'll want to inspect logs between
   phases the first several times you run this.
-- Doesn't manage driver packs - `10-Build-OemLayer.ps1` stages whatever's in your `Drivers\`
-  folder, sourcing/organizing those per hardware model is on you.
-- Doesn't yet ship `Apply-SecurityBaseline.ps1` - referenced throughout `AuditMode/README.md` and
-  the v2.5.0 release notes, but not present in this repo. Tracked as a real gap, not a
-  documentation typo. Treat every hardening claim in the release notes as roadmap until this
-  script lands - see `ROADMAP.md` (Security section, v2.6).
+- Doesn't manage driver packs - `10-Build-OemLayer.ps1` stages whatever's in your
+  `Drivers-SCCM\` folder, sourcing/organizing those per hardware model is on you.
+  (`Scripts/12-Inject-Drivers.ps1`, v2.6, is a separate optional offline-injection path for
+  boot-critical drivers - see `Scripts/README.md`.)
+- Doesn't yet wire up `Defaults/` (default-app associations, Wi-Fi profile) - checked for
+  presence by script `03` but not applied by any script. Tracked as a real gap, not a
+  documentation typo - see `ARCHITECTURE.md` §6 (Known gaps).
 
 ## Background / worked example
 

@@ -1,0 +1,85 @@
+name: Validate
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: ['**']
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  lint-powershell:
+    name: PSScriptAnalyzer
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+          Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser -ErrorAction Stop
+
+      - name: Run PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          Import-Module PSScriptAnalyzer -Force
+          $results = Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1
+
+          if ($results) {
+              $results | Format-Table -AutoSize RuleName, Severity, ScriptName, Line, Message |
+                  Out-String -Width 200 | Write-Output
+              Write-Output "::error::PSScriptAnalyzer found $($results.Count) issue(s) at Warning severity or above."
+              exit 1
+          }
+
+          Write-Output "PSScriptAnalyzer: 0 issues."
+
+  validate-xml:
+    name: XML well-formedness
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate every tracked .xml file parses
+        shell: pwsh
+        run: |
+          $failed = $false
+          Get-ChildItem -Path . -Filter *.xml -Recurse | ForEach-Object {
+              try {
+                  [xml](Get-Content -Path $_.FullName -Raw) | Out-Null
+                  Write-Output "OK    $($_.FullName)"
+              } catch {
+                  Write-Output "FAIL  $($_.FullName): $_"
+                  $script:failed = $true
+              }
+          }
+          if ($failed) {
+              Write-Output "::error::One or more XML files failed to parse."
+              exit 1
+          }
+
+      - name: Reject the shipped placeholder password in any other XML file
+        shell: pwsh
+        run: |
+          # OEM-Template/Autounattend.xml is a template and is EXPECTED to ship
+          # with the documented placeholder (README.md's placeholder table;
+          # Scripts/11-Build-Iso.ps1's own build-time gate catches it before a
+          # real ISO is built). Scoped to *.xml only - README.md and script 11
+          # both legitimately quote the string as prose/detector code, which
+          # would false-positive a repo-wide text search.
+          $hits = Get-ChildItem -Path . -Filter *.xml -Recurse -File |
+              Where-Object { $_.FullName -notmatch '[\\/]OEM-Template[\\/]Autounattend\.xml$' } |
+              Select-String -Pattern '!ChangeMe2026!' -SimpleMatch -ErrorAction SilentlyContinue
+          if ($hits) {
+              $hits | ForEach-Object { Write-Output "FOUND  $($_.Path):$($_.LineNumber)" }
+              Write-Output "::error::Placeholder password found outside OEM-Template/Autounattend.xml."
+              exit 1
+          }
+          Write-Output "OK    placeholder password only present in OEM-Template/Autounattend.xml"
