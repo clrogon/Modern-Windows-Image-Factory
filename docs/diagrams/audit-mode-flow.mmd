@@ -1,9 +1,8 @@
 flowchart TD
-    Boot(["Ctrl+Shift+F3 at OOBE\n-> enters audit mode"]) --> SecBaseline["Apply-SecurityBaseline.ps1\n(NOT YET SHIPPED - see ROADMAP v2.6)"]
-    SecBaseline -.->|"roadmap only"| Reboot1["Reboot\n(VBS / HVCI / Credential Guard activation)"]
-    Reboot1 -.-> Verify["Apply-SecurityBaseline.ps1 -VerifyOnly\n(roadmap only)"]
-    Verify -.-> Fix{"Branding / OEM info\nshowing correctly?"}
-    SecBaseline --> Fix
+    Boot(["Ctrl+Shift+F3 at OOBE\n-> enters audit mode"]) --> SecBaseline["Apply-SecurityBaseline.ps1\n(dry-run, then -Apply $true)"]
+    SecBaseline --> Reboot1["Reboot\n(VBS / HVCI / Credential Guard activation)"]
+    Reboot1 --> Verify["Apply-SecurityBaseline.ps1 -VerifyOnly\nHardeningReport-*.txt"]
+    Verify --> Fix{"Branding / OEM info\nshowing correctly?"}
     Fix -->|"No"| PostInstall["Apply-PostInstallCustomization.ps1\n(diagnostic re-apply, optional)"]
     Fix -->|"Yes"| Profile
     PostInstall --> Profile["Choose image profile"]
@@ -14,7 +13,3 @@ flowchart TD
     Cleanup --> Sysprep["Sysprep /generalize /oobe /shutdown"]
     Sysprep --> Capture["Capture WIM\n(DISM / MDT / SCCM)"]
     Capture --> Deploy["Deploy via MDT / SCCM / Intune / Autopilot"]
-
-    style SecBaseline fill:#00000000,stroke-dasharray: 5 5
-    style Reboot1 fill:#00000000,stroke-dasharray: 5 5
-    style Verify fill:#00000000,stroke-dasharray: 5 5

@@ -16,8 +16,8 @@ The build is split across two machines that never need to be the same box:
 - **Build server** (`Scripts/01-11`) — offline DISM servicing of `install.wim` plus an
   ISO repackage. No VM required, nothing here boots Windows.
 - **Reference VM** (`AuditMode/`) — boots the custom ISO into audit mode, applies the
-  security baseline (see [gaps](#6-known-gaps) below), optionally layers software, then
-  Sysprep + capture.
+  security baseline (`Apply-SecurityBaseline.ps1`, shipped in v2.6), optionally layers
+  software, then Sysprep + capture.
 
 ```mermaid
 flowchart TB
@@ -36,7 +36,7 @@ flowchart TB
     end
 
     subgraph RefVM["Phase 2 - Reference VM (AuditMode/)"]
-        Audit["Audit mode:\nhardening baseline (roadmap)\n+ software layer (THIN/THICK)\n+ Sysprep"]
+        Audit["Audit mode:\nhardening baseline (Apply-SecurityBaseline.ps1)\n+ software layer (THIN/THICK)\n+ Sysprep"]
     end
 
     Inputs --> BuildServer
@@ -92,6 +92,14 @@ default — bare invocation only logs what it *would* do; pass `-Apply` to actua
 anything. `Diagnostics\` scripts are pulled out of the numbered sequence entirely because
 they're read-only and safe to run at any point once the WIM is mounted.
 
+**Optional v2.6 additions (`12`-`15`)** — driver injection, language packs, Features on
+Demand, and Microsoft Store restoration. Unlike `04`-`09`, each is a self-contained
+mount/service/dismount cycle rather than sharing the `MOUNTED` window above, specifically
+so they didn't require renumbering any of `01`-`11` (see `CHANGELOG.md` v2.5.1 for why
+stale/shifted script-number references are a real bug class in this repo). Run them, if
+needed, after `09-Dismount-Image.ps1` and before `10-Build-OemLayer.ps1` — see
+`Scripts/README.md` and each script's own header.
+
 ## 3. `$OEM$` delivery mapping
 
 Script `10` builds the `sources\$OEM$\` tree Windows Setup processes automatically during
@@ -143,11 +151,10 @@ to. See `CHANGELOG.md` §2 for what happens when the two sides of that contract 
 
 ```mermaid
 flowchart TD
-    Boot(["Ctrl+Shift+F3 at OOBE\n-> enters audit mode"]) --> SecBaseline["Apply-SecurityBaseline.ps1\n(NOT YET SHIPPED - see ROADMAP v2.6)"]
-    SecBaseline -.->|"roadmap only"| Reboot1["Reboot\n(VBS / HVCI / Credential Guard activation)"]
-    Reboot1 -.-> Verify["Apply-SecurityBaseline.ps1 -VerifyOnly\n(roadmap only)"]
-    Verify -.-> Fix{"Branding / OEM info\nshowing correctly?"}
-    SecBaseline --> Fix
+    Boot(["Ctrl+Shift+F3 at OOBE\n-> enters audit mode"]) --> SecBaseline["Apply-SecurityBaseline.ps1\n(dry-run, then -Apply $true)"]
+    SecBaseline --> Reboot1["Reboot\n(VBS / HVCI / Credential Guard activation)"]
+    Reboot1 --> Verify["Apply-SecurityBaseline.ps1 -VerifyOnly\nHardeningReport-*.txt"]
+    Verify --> Fix{"Branding / OEM info\nshowing correctly?"}
     Fix -->|"No"| PostInstall["Apply-PostInstallCustomization.ps1\n(diagnostic re-apply, optional)"]
     Fix -->|"Yes"| Profile
     PostInstall --> Profile["Choose image profile"]
@@ -158,14 +165,10 @@ flowchart TD
     Cleanup --> Sysprep["Sysprep /generalize /oobe /shutdown"]
     Sysprep --> Capture["Capture WIM\n(DISM / MDT / SCCM)"]
     Capture --> Deploy["Deploy via MDT / SCCM / Intune / Autopilot"]
-
-    style SecBaseline fill:#00000000,stroke-dasharray: 5 5
-    style Reboot1 fill:#00000000,stroke-dasharray: 5 5
-    style Verify fill:#00000000,stroke-dasharray: 5 5
 ```
 
-The dashed nodes are the documented-but-not-yet-shipped hardening step (`ROADMAP.md`,
-v2.6 Security section) — see [Known gaps](#6-known-gaps).
+`Apply-SecurityBaseline.ps1` shipped in v2.6 — see `CHANGELOG.md` for what it covers and
+`AuditMode/README.md` for the step-by-step workflow shown above.
 
 ## 5. Configuration inputs
 
@@ -176,22 +179,16 @@ Everything the pipeline consumes but doesn't ship pre-populated:
 | `Lists/` | Script `04` (AppX + capability removal) | Shipped, curated |
 | `Branding/` | Script `10` (wallpaper/lock screen) | Empty — bring your own |
 | `Defaults/` | Not yet consumed by any script — checked for presence only, by script `03` | Empty — sourced from your domain, gap (see §6) |
-| `Drivers-SCCM/` | Script `10` (driver staging) | Not tracked — populate before building |
-| `GPO-Backup/`, `LGPO/`, `SCT/` | `AuditMode/` hardening baseline (roadmap) | Empty — populate from Microsoft SCT + your domain GPOs |
+| `Drivers-SCCM/` | Script `10` (driver staging), optionally `Scripts/12-Inject-Drivers.ps1` (offline injection) | Not tracked — populate before building |
+| `GPO-Backup/`, `LGPO/`, `SCT/` | `AuditMode/Apply-SecurityBaseline.ps1` (staged into the ISO by script `10` Step 7b) | Empty — populate from Microsoft SCT + your domain GPOs |
 | `OEM-Template/` | Scripts `10` and `11` (`SetupComplete.cmd`, `Autounattend.xml`) | Shipped with placeholders — replace before production |
 | `unattend/` | Sysprep / MDT answer files | Templates needed — build with Windows SIM |
 | `AuditMode/Software/` | `Install-ImageSoftware.ps1` (THICK builds) | Scripts/config shipped; binaries staged locally, not tracked |
+| `LanguagePacks/<tag>/` | `Scripts/13-Add-LanguagePacks.ps1` (optional) | Not shipped — create per language tag before use |
+| `Software/MicrosoftStore/` | `Scripts/15-Restore-MicrosoftStore.ps1` (optional) | Not shipped — see the script's header for the expected export layout |
 
 ## 6. Known gaps
 
-- **`Apply-SecurityBaseline.ps1` is not implemented yet.** It's referenced throughout
-  `AuditMode/README.md` and the `Release v2.5.0` notes as the CIS/VBS/HVCI/Credential
-  Guard hardening step, but the file doesn't exist in this repo — see `ROADMAP.md`
-  (Security, v2.6). Everything downstream of it in the audit-mode flow above still works
-  without it; you just won't have the automated baseline until it ships.
-- **No CI.** `ROADMAP.md` lists PSScriptAnalyzer and a GitHub Actions validation
-  pipeline as v2.6 targets — today nothing automatically checks the PowerShell in this
-  repo on push.
 - **`C:\AuditMode` cleanup is manual**, not scripted (see
   `AuditMode/Software/README.md`). Forgetting it ships installer binaries and hardening
   scripts to every deployed endpoint. (`C:\Drivers` is no longer in this category —
@@ -200,10 +197,12 @@ Everything the pipeline consumes but doesn't ship pre-populated:
   `03-Initialize-BuildEnvironment.ps1` only checks whether the files are present and logs
   an informational line — nothing in `Scripts/01`-`11` or `AuditMode/` copies them into the
   image or applies the Wi-Fi profile. See `Defaults/README.md`.
-- **`LGPO/` and `SCT/` are not staged into the `$OEM$` tree.** Script `10` only robocopies
-  the `AuditMode/` folder itself to `$OEM$\$1\AuditMode` — the top-level `LGPO/` and `SCT/`
-  folders it documents as inputs are never packaged into the ISO. This is moot until
-  `Apply-SecurityBaseline.ps1` (which would consume them) ships — see the first gap above.
+- **`AuditMode/Apply-SecurityBaseline.ps1`'s CIS/BitLocker coverage is a starting
+  baseline, not full parity with any specific compliance framework.** See the script's own
+  header for exactly what's verified against current Microsoft documentation vs. what's a
+  reasonable-but-unverified default (particularly the BitLocker FVE policy subset) —
+  extend it against your org's actual compliance requirements before relying on it for
+  sign-off.
 
 ## 7. Where the diagrams live
 

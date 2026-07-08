@@ -120,8 +120,8 @@ foreach ($entry in $systemAppsToRemove) {
 
         try {
             # SystemApps folders are owned by TrustedInstaller. takeown + icacls are required.
-            $tkResult = & takeown.exe /F $folder.FullName /R /A /D Y 2>&1 | Out-Null
-            $acResult = & icacls.exe $folder.FullName /grant "BUILTIN\Administrators:F" /T /C /Q 2>&1 | Out-Null
+            & takeown.exe /F $folder.FullName /R /A /D Y 2>&1 | Out-Null
+            & icacls.exe $folder.FullName /grant "BUILTIN\Administrators:F" /T /C /Q 2>&1 | Out-Null
 
             Remove-Item -Path $folder.FullName -Recurse -Force -ErrorAction Stop
 

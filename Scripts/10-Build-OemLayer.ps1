@@ -57,7 +57,6 @@ $ErrorActionPreference = 'Stop'
 # below would silently point at a folder that doesn't exist.
 $BuildRoot     = Split-Path -Parent $PSScriptRoot
 $Config        = Import-PowerShellDataFile -Path (Join-Path $PSScriptRoot 'BuildConfig.psd1')
-$Win11Version  = $Config.Win11Version
 if (-not $IsoExtractDir) { $IsoExtractDir = $Config.ExtractDest }
 $ISOExtractDir = $IsoExtractDir
 $OEMRoot       = Join-Path $ISOExtractDir 'sources\$OEM$'
@@ -66,6 +65,13 @@ $BrandingSrc    = Join-Path $BuildRoot 'Branding'
 $OEMTemplateSrc = Join-Path $BuildRoot 'OEM-Template'
 $DriversSrc     = Join-Path $BuildRoot 'Drivers-SCCM'
 $AuditModeSrc   = Join-Path $BuildRoot 'AuditMode'
+# LGPO/ and SCT/ are top-level repo folders (siblings of AuditMode/, not
+# nested inside it - see root README.md folder structure). Staged into
+# $OEM$\$1\AuditMode\LGPO and \SCT (v2.6) so AuditMode\Apply-SecurityBaseline.ps1
+# finds them at its default -LgpoPath/-MachineBaselinePath on the reference
+# VM without the operator having to hand-copy them post-install.
+$LgpoSrc        = Join-Path $BuildRoot 'LGPO'
+$SctSrc         = Join-Path $BuildRoot 'SCT'
 
 $WallpaperFile   = 'Wallpaper.jpg'
 $LockScreenFile  = 'LockScreen.jpg'
@@ -143,6 +149,8 @@ $Path_OEM_SetupScripts = Join-Path $OEMRoot '$$\Setup\Scripts'
 $Path_OEM_Branding     = Join-Path $OEMRoot "`$`$\$BrandingDestRel"
 $Path_OEM_Drivers      = Join-Path $OEMRoot '$1\Drivers'
 $Path_OEM_AuditMode    = Join-Path $OEMRoot '$1\AuditMode'
+$Path_OEM_AuditModeLgpo = Join-Path $Path_OEM_AuditMode 'LGPO'
+$Path_OEM_AuditModeSct  = Join-Path $Path_OEM_AuditMode 'SCT'
 
 # ==========================================================================
 # STEP 1 - Create $OEM$ skeleton
@@ -356,6 +364,39 @@ if (-not (Test-Path $AuditModeSrc)) {
         }
     } else {
         Write-Log "[DRY-RUN] Would robocopy $AuditModeSrc -> $Path_OEM_AuditMode"
+    }
+}
+
+# ==========================================================================
+# STEP 7b - LGPO\ and SCT\ -> $OEM$\$1\AuditMode\LGPO, \SCT (v2.6)
+# ==========================================================================
+Write-Log ''
+Write-Log '----- Step 7b: LGPO / SCT baseline (for Apply-SecurityBaseline.ps1) -----'
+
+foreach ($pair in @(
+    @{ Src = $LgpoSrc; Dest = $Path_OEM_AuditModeLgpo; Name = 'LGPO' },
+    @{ Src = $SctSrc;  Dest = $Path_OEM_AuditModeSct;  Name = 'SCT'  }
+)) {
+    if (-not (Test-Path $pair.Src)) {
+        Write-Log "$($pair.Name) source folder not present: $($pair.Src) - see $($pair.Name)/README.md" 'WARN'
+        continue
+    }
+    $Content = Get-ChildItem -Path $pair.Src -Recurse -ErrorAction SilentlyContinue
+    if (-not $Content -or $Content.Count -eq 0) {
+        Write-Log "$($pair.Name) source folder exists but is EMPTY: $($pair.Src) - see $($pair.Name)/README.md" 'WARN'
+        continue
+    }
+    if ($Apply) {
+        $RoboLog = Join-Path $LogDir "robocopy-$($pair.Name.ToLower())-$Timestamp.log"
+        & robocopy.exe $pair.Src $pair.Dest /MIR /R:1 /W:1 /NFL /NDL /NP /LOG:$RoboLog | Out-Null
+        $RoboCode = $LASTEXITCODE
+        if ($RoboCode -lt 8) {
+            Write-Log "$($pair.Name) staged (robocopy exit $RoboCode)" 'OK'
+        } else {
+            Write-Log "$($pair.Name) robocopy exit code $RoboCode. Check $RoboLog" 'ERROR'
+        }
+    } else {
+        Write-Log "[DRY-RUN] Would robocopy $($pair.Src) -> $($pair.Dest)"
     }
 }
 

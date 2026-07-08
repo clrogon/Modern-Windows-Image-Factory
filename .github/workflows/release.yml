@@ -1,0 +1,98 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing tag to (re-)publish a release for, e.g. v2.6.0'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate
+    uses: ./.github/workflows/validate.yml
+
+  package:
+    name: Package + publish release
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve tag and version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          VERSION="${TAG#v}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Build source archive (tracked files only, respects .gitignore)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          ARCHIVE_NAME="modern-windows-image-factory-${{ steps.version.outputs.tag }}"
+          git archive --prefix="${ARCHIVE_NAME}/" -o "dist/${ARCHIVE_NAME}.zip" "${{ steps.version.outputs.tag }}"
+          echo "archive_name=${ARCHIVE_NAME}.zip" >> "$GITHUB_ENV"
+
+      - name: SHA256 manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd dist
+          sha256sum "${archive_name}" > "${archive_name}.sha256"
+          cat "${archive_name}.sha256"
+
+      - name: Extract CHANGELOG section for this version
+        id: notes
+        shell: pwsh
+        run: |
+          $version = '${{ steps.version.outputs.version }}'
+          $changelog = Get-Content -Path CHANGELOG.md -Raw
+
+          # CHANGELOG.md heading granularity is inconsistent (## v2.4,
+          # ## v2.5.1, ## v2.6) - try the full version first, then
+          # progressively drop trailing segments until a heading matches, so
+          # tagging v2.6.0 still finds "## v2.6".
+          $notes = $null
+          $candidate = $version
+          while ($candidate) {
+              $pattern = "(?ms)^## v$([regex]::Escape($candidate))\b.*?(?=^## v|\z)"
+              $match = [regex]::Match($changelog, $pattern)
+              if ($match.Success) { $notes = $match.Value.Trim(); break }
+              if ($candidate -notmatch '\.') { break }
+              $candidate = $candidate.Substring(0, $candidate.LastIndexOf('.'))
+          }
+          if (-not $notes) {
+              $notes = "No matching CHANGELOG.md section found for v$version - see CHANGELOG.md and ROADMAP.md for what shipped."
+          }
+
+          $notesPath = 'dist/RELEASE_NOTES.md'
+          Set-Content -Path $notesPath -Value $notes -Encoding UTF8
+          Write-Output "notes_path=$notesPath" >> $env:GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.tag }}
+          body_path: ${{ steps.notes.outputs.notes_path }}
+          draft: false
+          prerelease: false
+          files: |
+            dist/*.zip
+            dist/*.sha256

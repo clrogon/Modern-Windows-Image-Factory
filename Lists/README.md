@@ -1,11 +1,12 @@
 # Lists\
 
-Controlled removal lists used by Phase 1 (offline DISM servicing).
+Controlled removal (and, since v2.6, addition) lists used by Phase 1 (offline DISM servicing).
 
 | File | Purpose |
 |---|---|
-| `ApprovedRemoval-Apps.txt` | Provisioned AppX packages to remove from install.wim |
-| `ApprovedRemoval-Capabilities.txt` | Windows optional capabilities to remove from install.wim |
+| `ApprovedRemoval-Apps.txt` | Provisioned AppX packages to remove from install.wim (script `04`) |
+| `ApprovedRemoval-Capabilities.txt` | Windows optional capabilities to remove from install.wim (script `04`) |
+| `ApprovedAdd-Capabilities.txt` | Windows optional capabilities to ADD to install.wim (script `14`, optional) |
 
 **Format:** one entry per line. Lines starting with `#` are comments. Blank lines ignored.
 

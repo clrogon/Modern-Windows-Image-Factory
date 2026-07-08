@@ -35,7 +35,18 @@ Preferred practices:
 * Try/Catch error handling
 * Verbose logging
 * Comment-based help
-* SupportsShouldProcess where appropriate
+* `-Apply` dry-run-by-default (this repo's chosen convention - see
+  `PSScriptAnalyzerSettings.psd1` for why `SupportsShouldProcess` isn't
+  additionally required on top of it)
+
+New/changed `.ps1` files are linted by `.github/workflows/validate.yml`
+(PSScriptAnalyzer, via `PSScriptAnalyzerSettings.psd1`) on every push and PR.
+Run it locally before pushing:
+
+```powershell
+Install-Module PSScriptAnalyzer -Scope CurrentUser
+Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1
+```
 
 ### Security Requirements
 
