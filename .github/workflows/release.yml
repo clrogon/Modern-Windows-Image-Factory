@@ -40,13 +40,35 @@ jobs:
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Build source archive (tracked files only, respects .gitignore)
+      - name: Build release archive (runtime folders only, not the full repo)
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p dist
-          ARCHIVE_NAME="modern-windows-image-factory-${{ steps.version.outputs.tag }}"
-          git archive --prefix="${ARCHIVE_NAME}/" -o "dist/${ARCHIVE_NAME}.zip" "${{ steps.version.outputs.tag }}"
+          TAG="${{ steps.version.outputs.tag }}"
+          ARCHIVE_NAME="modern-windows-image-factory-${TAG}"
+          STAGE="dist/${ARCHIVE_NAME}"
+          mkdir -p "$STAGE"
+
+          # GitHub already offers "Clone" / "Download ZIP" for the full repo
+          # (docs, CI config, tests, etc). The release asset only needs the
+          # folders an operator actually copies onto the build server - kept
+          # in sync with the "Folder structure" list in README.md.
+          DIRS=(
+            AuditMode Branding Defaults Drivers-SCCM GPO-Backup
+            LanguagePacks LGPO Lists OEM-Template SCT Scripts Software
+            unattend
+          )
+
+          for d in "${DIRS[@]}"; do
+            if git cat-file -e "${TAG}:${d}" 2>/dev/null; then
+              git archive "${TAG}" -- "$d" | tar -x -C "$STAGE"
+            else
+              echo "::warning::${d} not present at ${TAG} (older release) - skipping"
+            fi
+          done
+
+          (cd dist && zip -rq "${ARCHIVE_NAME}.zip" "${ARCHIVE_NAME}")
+          rm -rf "$STAGE"
           echo "archive_name=${ARCHIVE_NAME}.zip" >> "$GITHUB_ENV"
 
       - name: SHA256 manifest
