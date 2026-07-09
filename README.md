@@ -106,6 +106,58 @@ Set-Location Scripts
 Full run order, recovery commands, and why there are three separate offline-removal scripts:
 see `Scripts/README.md`.
 
+## Pipeline in action
+
+Real runs against a Windows 11 25H2 build - not mock-ups. Every build-server script dry-runs by
+default and only mutates state when you pass `-Apply`; most captures below show that pattern (the
+dry-run first, then the `-Apply` run).
+
+<details>
+<summary><b>Show the build-server pipeline running</b></summary>
+
+<br>
+
+**Prepare** - unblock the downloaded scripts, then verify the build environment (folder structure,
+required files, ADK/oscdimg discovery).
+
+![01 - Unblock scripts](docs/screenshots/pipeline/01-unblock-scripts.png)
+
+![03 - Initialize build environment](docs/screenshots/pipeline/03-initialize-buildenvironment.png)
+
+**Extract** - mount the Enterprise ISO, copy it out, and confirm the `install.wim` edition index
+to service.
+
+![02 - Extract ISO](docs/screenshots/pipeline/02-extract-iso.png)
+
+**Debloat, offline** - three separate removal passes against the mounted image: provisioned AppX,
+then SystemApps, then the consumer OneDrive client plus its reinstall-suppression keys in the
+offline hive.
+
+![04 - Remove provisioned apps](docs/screenshots/pipeline/04-remove-provisionedapps.png)
+
+![05 - Remove system apps](docs/screenshots/pipeline/05-remove-systemapps.png)
+
+![06 - Remove OneDrive](docs/screenshots/pipeline/06-remove-onedrive.png)
+
+**Service** - enable .NET Framework 3.5 offline from the ISO's `sources\sxs`.
+
+![07 - Enable .NET 3.5](docs/screenshots/pipeline/07-enable-dotnet35.png)
+
+<!-- 08 (Import default app associations) is intentionally not linked here: its verify step
+     prints the OEMDefaultAssociations.xml header (internal Reference/Owner fields). The PNG
+     ships in docs/screenshots/pipeline/ - re-enable this line once that header is generic:
+![08 - Import default app associations](docs/screenshots/pipeline/08-import-defaultappassociations.png)
+-->
+
+**Commit &amp; package** - dismount with `-Save` to bake every change into the WIM, then repackage
+a bootable ISO and emit a SHA256 manifest.
+
+![09 - Dismount and commit](docs/screenshots/pipeline/09-dismount-image.png)
+
+![11 - Build ISO](docs/screenshots/pipeline/11-build-iso.png)
+
+</details>
+
 ## Screenshots
 
 _Placeholders below - swap in real captures from your own build. See
