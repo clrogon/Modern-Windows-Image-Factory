@@ -288,8 +288,10 @@ if (-not (Test-Path $DriversSrc)) {
     Write-Log "Drivers source dir not present: $DriversSrc" 'WARN'
     Write-Log 'No drivers will be staged. PnP will rely on inbox drivers only.' 'WARN'
 } else {
-    $DriverContent = Get-ChildItem -Path $DriversSrc -Recurse -ErrorAction SilentlyContinue
-    if (-not $DriverContent -or $DriverContent.Count -eq 0) {
+    # Wrap in @() - see Step 7b comment: a single-item result unwraps to a
+    # bare object with no .Count property, which throws under StrictMode.
+    $DriverContent = @(Get-ChildItem -Path $DriversSrc -Recurse -ErrorAction SilentlyContinue)
+    if ($DriverContent.Count -eq 0) {
         Write-Log "Drivers source folder exists but is EMPTY: $DriversSrc" 'WARN'
         Write-Log 'Place driver content under Drivers-SCCM\ before running 06.' 'WARN'
     } else {
@@ -381,8 +383,11 @@ foreach ($pair in @(
         Write-Log "$($pair.Name) source folder not present: $($pair.Src) - see $($pair.Name)/README.md" 'WARN'
         continue
     }
-    $Content = Get-ChildItem -Path $pair.Src -Recurse -ErrorAction SilentlyContinue
-    if (-not $Content -or $Content.Count -eq 0) {
+    # Wrap in @() - Get-ChildItem unwraps a single-item result to a bare
+    # object with no .Count property, which throws under Set-StrictMode
+    # when the source folder contains exactly one file/folder.
+    $Content = @(Get-ChildItem -Path $pair.Src -Recurse -ErrorAction SilentlyContinue)
+    if ($Content.Count -eq 0) {
         Write-Log "$($pair.Name) source folder exists but is EMPTY: $($pair.Src) - see $($pair.Name)/README.md" 'WARN'
         continue
     }
