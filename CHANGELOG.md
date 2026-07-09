@@ -1,3 +1,39 @@
+## v2.6.1 - OEM-layer crash fix + release packaging scope
+
+Patch release on top of v2.6. One bug fix, one release-process change. No new
+scripts, no behavioural change to the build pipeline itself.
+
+### Fixed
+
+- **`Scripts/10-Build-OemLayer.ps1`**: fixed a `Set-StrictMode` crash
+  (`PropertyNotFoundException` on `.Count`) that hit Step 7b (LGPO/SCT
+  staging) whenever one of those source folders contained exactly one
+  file/folder. `Get-ChildItem -Recurse` unwraps a single-item result to a
+  bare object with no `.Count` property, and `Set-StrictMode -Version Latest`
+  throws on that instead of treating it as `$null`. Wrapped both that check
+  and the equivalent one in Step 6 (`Drivers-SCCM` staging, same latent bug)
+  in `@(...)` so the result is always a proper array regardless of item
+  count.
+
+### Changed
+
+- **Release packaging** (`.github/workflows/release.yml`): release `.zip`
+  assets now contain only the 13 top-level runtime folders documented in
+  README.md's "Folder structure" (`AuditMode/`, `Branding/`, `Defaults/`,
+  `Drivers-SCCM/`, `GPO-Backup/`, `LanguagePacks/`, `LGPO/`, `Lists/`,
+  `OEM-Template/`, `SCT/`, `Scripts/`, `Software/`, `unattend/`), instead of a
+  `git archive` of the entire tagged tree. GitHub's Clone/Download ZIP
+  buttons already cover the full source (docs, CI config, tests); the
+  release asset now matches what an operator actually copies onto the build
+  server.
+- Added `README.md` placeholders to `Drivers-SCCM/`, `LanguagePacks/`, and
+  `Software/` — previously untracked "not shipped" folders with nothing in
+  the repo tree at all — so they exist to be archived and explain what goes
+  there, matching every other empty runtime folder (`Branding/`, `Defaults/`,
+  `GPO-Backup/`, etc.).
+
+---
+
 ## v2.6 - Security baseline, image engineering automation, CI/release pipeline
 
 Delivers every item tracked under "Version 2.6" in `ROADMAP.md` (now moved there to
